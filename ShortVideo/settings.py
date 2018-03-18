@@ -10,8 +10,10 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+# 项目的根目录
+# 简化后面的操作
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -66,12 +68,6 @@ TEMPLATES = [
     },
 ]
 
-
-ROOT_URLCONF = 'ShortVideo.urls'
-
-WSGI_APPLICATION = 'ShortVideo.wsgi.application'
-
-
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
@@ -117,4 +113,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+ROOT_URLCONF = 'ShortVideo.urls'
+
+WSGI_APPLICATION = 'ShortVideo.wsgi.application'
+
+SITE_ROOT = os.path.dirname(os.path.abspath(__file__))
+SITE_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../'))
+
+STATIC_ROOT = os.path.join(SITE_ROOT, 'collectedstatic')
+
+# 给静态文件url一个后，在templates里用到的。
+# 映射到静态文件的url
 STATIC_URL = '/static/'
+STATICFILES = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL='/media/'
+MEDIA_ROOT=os.path.join(BASE_DIR,'media')
+
+# 分页
+PAGINATE_BY = 10
