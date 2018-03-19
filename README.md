@@ -28,10 +28,12 @@ sudo apt-get install -y redis-server
 ```
 
 添加videokit到INSTALLED_APPS
+```
 INSTALLED_APPS = (
     ...
     'videokit',
 )
+```
 
 然后,
 创建项目所在的python虚拟环境
