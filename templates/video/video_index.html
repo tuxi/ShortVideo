@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div>
+        <a href="{% url 'video:upload' %}">上傳視頻</a>
+    </div>
+    <div>
+        {% for item in media_items %}
+            <div>
+                <video controls preload="auto">
+                    <source src="{{ item.video.url }}" type="video/mp4">
+                </video>
+            </div>
+            <hr>
+
+        {% endfor %}
+    </div>
+{% endblock %}

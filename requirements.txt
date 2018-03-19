@@ -1,0 +1,8 @@
+Django==1.9
+django-admin==1.1.1
+PyMySQL==0.8.0
+celery==4.0.2
+Pillow==4.0.0
+amqp==2.1.4
+appdirs==1.4.0
+redis==2.10.5

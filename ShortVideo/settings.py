@@ -24,10 +24,7 @@ SECRET_KEY = 's$-9&3j^=+$&^wi=hu4q%$2x#(6giqtendmaa1a=7ozma4zsuh'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -38,6 +35,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'video',
+    'videokit',
 )
 
 MIDDLEWARE = (
@@ -64,6 +63,7 @@ TEMPLATES = [
                 # 完成上面的配置之后，发现还是没显示出我们的图片，是因为我们没有指定访问这个URL {{ MEDIA_URL }}{{ org.image }}时应该去哪去这个文件，在urls.py文件中进行以下设置：
                 'django.template.context_processors.media',
             ],
+            'debug': DEBUG,#在settings.py 中把以TEMPLATE_开头的设置信息，全都加到一个TEMPLATES中。因为到户都是Template相关的设置，那为什么不把他们都放在一起呢？？
         },
     },
 ]
@@ -72,26 +72,15 @@ TEMPLATES = [
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
 # 数据库配置
-MYDB = {
-    'mysql': {
+DATABASES = {
+    'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'shortvideo',  # 数据库名称
         'USER':'root', # 数据库用户名
         'PASSWORD': 'root',  # 数据库密码
         'HOST': '127.0.0.1', # 数据库主机，留空默认为localhost
         'PORT': 3306, # 数据库端口
-    },
-    'sqlite': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db/db.sqlite3').replace('\\', '/'),
     }
-}
-
-
-# 数据库配置
-# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-DATABASES = {
-    'default': MYDB.get('mysql')
 }
 
 # Internationalization
@@ -129,6 +118,7 @@ STATICFILES = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL='/media/'
 MEDIA_ROOT=os.path.join(BASE_DIR,'media')
+
 
 # 分页
 PAGINATE_BY = 10
