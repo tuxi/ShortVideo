@@ -42,8 +42,7 @@ def upload(request):
 
                 media_item.video_mp4.generate()
                 media_item.video_ogg.generate()
-
-                return HttpResponseRedirect(reverse('list'))
+                return HttpResponseRedirect(reverse('video:index'))
 
     context = {
         'upload_media_form' : upload_media_form,

@@ -5,7 +5,7 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ upload_media_form.as_p }}
-            <button type="submit">create</button>
+            <button type="submit">upload</button>
         </form>
     </div>
 {% endblock %}
