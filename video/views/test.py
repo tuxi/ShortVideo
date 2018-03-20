@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-# @Time    : 3/18/18 8:05 AM
+# @Time    : 3/20/18 7:56 AM
 # @Author  : alpface
 # @Email   : xiaoyuan1314@me.com
-# @File    : urls.py
+# @File    : test.py
 # @Software: PyCharm
 
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView
-from video.models import MediaItem
+from video.models import VideoItem, Category, Likes
 from ShortVideo.settings import PAGINATE_BY
 from video.forms import MediaItemUploadForm
 
@@ -17,7 +17,7 @@ from video.forms import MediaItemUploadForm
 def index(request):
     template = 'video/video_index.html'
 
-    media_items = MediaItem.objects.all()
+    media_items = VideoItem.objects.all()
 
     print(len(media_items))
     context = {
@@ -37,7 +37,7 @@ def upload(request):
             video = request.FILES.get('video', None)
 
             if video:
-                media_item = MediaItem(video = video)
+                media_item = VideoItem(video = video)
                 media_item.save()
 
                 media_item.video_mp4.generate()
@@ -49,3 +49,24 @@ def upload(request):
     }
 
     return render(request, template, context)
+
+def videoDetail(request, vid):
+    '''视频详情页'''
+    # 获取视频分类作为菜单数据
+    menu_list = Category.objects.all()
+    # 获取视频数据
+    id = int(vid)
+    video = VideoItem.objects.get(id=id)
+    try:
+        video.viewed()
+    except Exception as e:
+        print(e)
+
+    # 获取点赞数
+    try:
+        likes = Likes.objects.filter(video=video).count()
+    except Exception as e:
+        likes = 0
+
+    return render(request, 'video/video_detail.html')
+
