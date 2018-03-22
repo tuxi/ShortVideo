@@ -136,7 +136,7 @@ def getVideoByUserId(request):
     video_list = VideoItem.objects.filter(user_id=user_id).annotate(
         avg_rating=Round(Avg('rating__rating')), # avg on rating column of rating table
         comment_count=Count('comment', distinct=True)
-    ).values()
+    )#.values()
 
     video_list = serializers.serialize('json', video_list)
 
@@ -158,7 +158,7 @@ def getVideoByIds(request):
     video_list = VideoItem.objects.filter(id__in=video_ids).annotate(
         avg_rating=Round(Avg('rating__rating')), # avg on rating column of rating table
         comment_count=Count('comment', distinct=True)
-    ).values()
+    )#.values()
 
     video_lsit = serializers.serialize('json', video_list)
     if video_list == None:
@@ -171,11 +171,12 @@ def getVideoByIds(request):
         }
     })
 def getAll(request):
-    '''根据一组id获取对应的一组视频'''
+    '''获取全部视频'''
     if request.method != 'GET':
         pass
 
     video_list = VideoItem.objects.all()
+    # 序列化对象
     video_list = serializers.serialize('json', video_list)
     if video_list == None:
         video_list = []
