@@ -47,11 +47,20 @@ def register(request):
     if request.method != 'POST':
         pass
 
-    post_data = json.loads(request.body)
+    post_data = json.loads(request.body.decode('utf-8'))
     username = post_data['username']
     email = post_data['email']
     password = post_data['password']
-
+    confirm_password = post_data['confirm_password']
+    sex = post_data['sex']
+    phone1 = post_data['phone1']
+    if password != confirm_password:
+        return JsonResponse({
+            'status': 'fail',
+            'data': {
+                'message': '兩次密碼不一致'
+            }
+        }, status=500)
     try:
         validate_password(password)
         validate_email(email)
@@ -65,7 +74,7 @@ def register(request):
 
     # register user
     try:
-        u = User.objects.create_user(username=username, password=password, email=email)
+        u = User.objects.create_user(username=username, password=password, email=email, sex = sex)
         u.save()
     except:
         return JsonResponse({
@@ -83,9 +92,13 @@ def login(request, redirect_after_registration=False, registration_data=None):
         token = create_login_token(registration_data)
     else:
         # check credentials
-        post_data = json.loads(request.body)
-        username = post_data['username']
-        password = post_data['password']
+        try:
+            post_data = json.loads(request.body.decode('utf-8'))
+            username = post_data['username']
+            password = post_data['password']
+        except Exception as e:
+            username = request.POST['username']
+            password = request.POST['password']
 
         u = authenticate(username=username, password=password)
         # if authenticated, create and return token
@@ -100,7 +113,7 @@ def login(request, redirect_after_registration=False, registration_data=None):
 
     res = JsonResponse({
         'status': 'success',
-        'data': str(token['token'], 'utf-8')
+        'token': str(token['token'], 'utf-8')
     })
     res.set_cookie('token', value=token['token'], expires=token['exp'])
     return res

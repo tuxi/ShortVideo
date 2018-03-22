@@ -12,7 +12,9 @@ from . import views
 test = [
 
     url(r'^$', views.index, name='index'),
-    url(r'^upload/$', views.upload, name = 'upload'),
+    url(r'^upload/$', views.test_upload, name = 'upload'),
+    url(r'^register/$', views.test_register, name = 'test_register'),
+    url(r'^login/$', views.test_login, name = 'test_login'),
     url(r'^video/(?P<video_id>[a-zA-Z0-9]+)/$', views.videoDetail, name='videoDetail'),
 ]
 
@@ -20,7 +22,7 @@ videos_routes = [
     # 根据ids获取一组视频,ids 为字符串,每个id之间以逗号分割
     url(r'^getVideoByIds$', views.video_summary, name='videoSummary'),
     # 通过视频的id获取该视频的详细信息, video/1/
-    url(r'^video/new$', views.new_video, name='new movie'),
+    url(r'^video/new$', views.new_video, name='new_video'),
     url(r'^video/(?P<video_id>[a-zA-Z0-9]+)/$', views.video_detail, name='videoDetails'),
     url(r'^video/(?P<video_id>[a-zA-Z0-9]+)/rating/$', views.getRating, name='getMovieRating'),
     url(r'^video/(?P<video_id>[0-9]+)/comments/$', views.get_comments, name='getMovieComments'),

@@ -16,7 +16,7 @@ def rate(request):
 
     # if POST, save or update rating
     if request.method == 'POST':
-        body = json.loads(request.body)
+        body = json.loads(request.body.decode('utf-8'))
         video_id = body['id']
         rating = int(body['rating'])
 
@@ -27,7 +27,7 @@ def rate(request):
             username = token['username']
 
         # get the video object with id video_id, or create it
-        m, created = VideoItem.objects.get_or_create(source_id=video_id, defaults={'title': ''})
+        m, created = VideoItem.objects.get_or_create(pk=video_id, defaults={'title': ''})
         # save or update rating
         try:
             r, created = Rating.objects.update_or_create(username=username, video=m, defaults={'rating': rating})
@@ -53,7 +53,7 @@ def rate(request):
         video_id = request.GET.get('m_id', '')
 
         # find movie object
-        m = VideoItem.objects.filter(source_id=video_id).first()
+        m = VideoItem.objects.filter(pk=video_id).first()
         r = Rating.objects.filter(video=m, username=username)
 
         # delete rating
@@ -75,7 +75,7 @@ def getRating(request, video_id):
     if request.method != 'POST':
         pass
 
-    body = json.loads(request.body)
+    body = json.loads(request.body.decode('utf-8'))
     username = body['username']
 
     # get rating

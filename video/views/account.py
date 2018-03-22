@@ -42,7 +42,7 @@ def update_data(request):
     token = get_token_data(request)
     username = token['username']
 
-    post_data = json.loads(request.body)
+    post_data = json.loads(request.body.decode('utf-8'))
     new_email = post_data['email']
 
     try:
@@ -79,7 +79,7 @@ def update_password(request):
     token = get_token_data(request)
     username = token['username']
 
-    post_data = json.loads(request.body)
+    post_data = json.loads(request.body.decode('utf-8'))
     new_password = post_data['password']
     old_password = post_data['oldPassword']
 

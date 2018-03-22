@@ -7,6 +7,8 @@
 
 from __future__ import unicode_literals
 
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -22,7 +24,7 @@ def upload_to(instance, filename):
 class VideoItem(models.Model):
     """媒体文件"""
     STATUS_CHOICES = (
-        ('d', '草稿'),
+        ('d', '審核'),
         ('p', '发表'),
     )
     COMMENT_STATUS = (
@@ -36,7 +38,6 @@ class VideoItem(models.Model):
                        duration_field='video_duration',
                        thumbnail_field='video_thumbnail',
                        )
-    source_id = models.CharField(max_length=100, primary_key=True)
     video_width = models.IntegerField(null=True, blank=True)
     video_height = models.IntegerField(null=True, blank=True)
     video_rotation = models.FloatField(null=True, blank=True)
@@ -57,15 +58,7 @@ class VideoItem(models.Model):
     comment_status = models.CharField('评论状态', max_length=1, choices=COMMENT_STATUS, default='o')
     status = models.CharField('视频状态', max_length=1, choices=STATUS_CHOICES, default='p')
     def __str__(self):
-        return 'ID: ' + self.source_id
-
-    def save(self, *args, **kwargs):
-        # movie ID has to be unique (should probably make it a primary key)
-        if VideoItem.objects.filter(source_id = self.source_id).exists():
-            raise ValueError('The movie with ID %s is already present' % self.source_id)
-        else:
-            # save
-            super(VideoItem, self).save(*args, **kwargs)
+        return self.title + self.describe
 
     class Meta:
         ordering = ['-pub_time']

@@ -15,7 +15,7 @@ from video.utils import get_token_data
 # @csrf_exempt # temporary decorator to remove csrf, just to test with postman
 def comment(request):
     if request.method == 'POST':
-        post_data = json.loads(request.body)
+        post_data = json.loads(request.body.decode('utf-8'))
         video_id = post_data['id']
         body = post_data['body']
 
@@ -26,7 +26,7 @@ def comment(request):
             username = token['username']
 
         # 获取视频模型对象
-        m, created = VideoItem.objects.get_or_create(source_id = video_id, defaults={'title': ''})
+        m, created = VideoItem.objects.get_or_create(pk = video_id, defaults={'title': ''})
         # comment
         c = Comment(video = m, username = username, body = body)
         try:

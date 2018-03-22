@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+    <form method="post" action="{% url 'video:login' %}">
+        {% csrf_token %}
+        <div>登錄</div>
+        <table>
+            <tr>
+                <td><span>用户名</span></td>
+                <td><input type="text" name="username"/></td>
+            </tr>
+            <tr>
+                <td><span>密码</span></td>
+                <td><input type="password" name="password"/></td>
+            </tr>
+            <tr>
+                <td><button type="submit">登錄</button></td>
+
+            </tr>
+        </table>
+    </form>
+{% endblock %}

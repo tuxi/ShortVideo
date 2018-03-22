@@ -25,7 +25,7 @@ class JwtAuthentication(object):
                 raise PermissionDenied
             except Exception as e:
                 raise PermissionDenied
-            # permission granted
+            # 授予權限 確定登錄成功
             return None
         else:
             raise PermissionDenied
