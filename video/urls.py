@@ -19,11 +19,16 @@ test = [
 ]
 
 videos_routes = [
+    # 获取全部视频
+    url(r'^video/getAll$', views.getAll, name='getAll$'),
+    # 根据用户id获取他所有的视频'
+    url(r'^video/getVideoByUserId$', views.getVideoByUserId, name='getVideoByUserId'),
     # 根据ids获取一组视频,ids 为字符串,每个id之间以逗号分割
-    url(r'^getVideoByIds$', views.video_summary, name='videoSummary'),
+    url(r'^video/getVideoByIds$', views.getVideoByIds, name='getVideoByIds$'),
     # 通过视频的id获取该视频的详细信息, video/1/
     url(r'^video/new$', views.new_video, name='new_video'),
-    url(r'^video/(?P<video_id>[a-zA-Z0-9]+)/$', views.video_detail, name='videoDetails'),
+    # 获取一个视频的详细信息 (注意: 参数中需要有user_id字段,获取某个用户的某个视频)
+    url(r'^video/detail/$', views.video_detail, name='videoDetails'),
     url(r'^video/(?P<video_id>[a-zA-Z0-9]+)/rating/$', views.getRating, name='getMovieRating'),
     url(r'^video/(?P<video_id>[0-9]+)/comments/$', views.get_comments, name='getMovieComments'),
 ]

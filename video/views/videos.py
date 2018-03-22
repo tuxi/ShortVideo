@@ -4,6 +4,7 @@
 # @Email   : xiaoyuan1314@me.com
 # @File    : videos.py
 # @Software: PyCharm
+import json
 
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Func
@@ -13,6 +14,7 @@ from ..models import VideoItem, Rating, Comment
 from video.middlewares.jwt_authentication import JwtAuthentication
 from django.utils.decorators import decorator_from_middleware
 from django.contrib.auth.models import User
+from django.core import serializers
 
 @decorator_from_middleware(JwtAuthentication)
 def new_video(request):
@@ -72,11 +74,16 @@ def new_video(request):
     })
 
 
-def video_detail(request, video_id):
+def video_detail(request):
     if request.method != 'GET':
         pass
 
-    # get movie
+    # 获取视频
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        video_id = data['data']
+    except Exception as e:
+        video_id = request.GET['user_id']
     try:
         m = VideoItem.objects.get(pk=video_id)
     except VideoItem.DoesNotExist:
@@ -118,25 +125,63 @@ class Round(Func):
     function = 'ROUND'
     template='%(function)s(%(expressions)s, 1)'
 
-def video_summary(request):
+def getVideoByUserId(request):
+    '''根据用户id获取他所有的视频'''
+    if request.method != 'GET':
+        pass
+
+    # 获取所有请求的视频id
+    user_id = request.GET.get('user_id', '')
+
+    video_list = VideoItem.objects.filter(user_id=user_id).annotate(
+        avg_rating=Round(Avg('rating__rating')), # avg on rating column of rating table
+        comment_count=Count('comment', distinct=True)
+    ).values()
+
+    video_list = serializers.serialize('json', video_list)
+
+    return JsonResponse({
+        'status': 'success',
+        'data': {
+            'videos': video_list
+        }
+    })
+
+def getVideoByIds(request):
+    '''根据一组id获取对应的一组视频'''
     if request.method != 'GET':
         pass
 
     # 获取所有请求的视频id
     video_ids = request.GET.get('ids', '').split(',')
 
-    m = VideoItem.objects.filter(id__in=video_ids).annotate(
+    video_list = VideoItem.objects.filter(id__in=video_ids).annotate(
         avg_rating=Round(Avg('rating__rating')), # avg on rating column of rating table
         comment_count=Count('comment', distinct=True)
     ).values()
 
-    videos = {}
-    for video in list(m):
-        videos[video.get('id')] = video
+    video_lsit = serializers.serialize('json', video_list)
+    if video_list == None:
+        video_list = []
 
     return JsonResponse({
         'status': 'success',
         'data': {
-            'videos': videos
+            'videos': video_lsit
+        }
+    })
+def getAll(request):
+    '''根据一组id获取对应的一组视频'''
+    if request.method != 'GET':
+        pass
+
+    video_list = VideoItem.objects.all()
+    video_list = serializers.serialize('json', video_list)
+    if video_list == None:
+        video_list = []
+    return JsonResponse({
+        'status': 'success',
+        'data': {
+            'videos': video_list
         }
     })

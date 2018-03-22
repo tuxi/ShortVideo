@@ -7,11 +7,6 @@
         {#            {{ upload_media_form.as_p }}#}
         {#            <button type="submit">upload</button>#}
         {#        </form>#}
-        {#    <form class="form" action="{% url 'video:upload' article.pk %}" method="post" enctype="multipart/form-data">#}
-        {#            {% csrf_token %}#}
-        {#            <input name="uploadfile" type="file">#}
-        {#            <input type="submit" value="附件上传">#}
-        {#        </form>#}
         <form method="post" action="{% url 'video:new_video' %} " enctype="multipart/form-data">
             {% csrf_token %}
             <p>
