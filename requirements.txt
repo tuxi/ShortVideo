@@ -7,4 +7,4 @@ amqp==2.1.4
 appdirs==1.4.0
 redis==2.10.5
 # 用户授权
-PyJWT=1.6.1
+PyJWT==1.6.1
