@@ -39,7 +39,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'video.apps.VideoConfig',
     'videokit.apps.VideokitConfig',
-    'account.apps.AccountConfig'
+    'account.apps.AccountConfig',
+    'gunicorn',
 )
 
 MIDDLEWARE_CLASSES = [
