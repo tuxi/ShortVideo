@@ -61,6 +61,8 @@ DATABASES = {
 python manage.py makemigrations
 python manage.py migrate
 ```
+note: 如果數據庫操作顯示`no changes`,可先清空每個app下的migrations目錄下除了__init__.py的所有文件,再執行上面兩個命令
+
 - 创建超级用户
 ```
 python manage.py createsuperuser
