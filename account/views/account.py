@@ -4,7 +4,7 @@
 # @Email   : xiaoyuan1314@me.com
 # @File    : account.py
 # @Software: PyCharm
-
+from PIL import Image
 from django.utils.decorators import decorator_from_middleware
 from account.middlewares.jwt_authentication import JwtAuthentication
 from account.models import UserProfile
@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 import json
+import time
 
 from account.utils import get_token_data, create_login_token
 from account.validators import validate_email, validate_password

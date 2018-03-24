@@ -71,9 +71,9 @@ def register(request):
         birday = None
         if 'birday' in post_data:
             birday = post_data['birday']
-        headerimage = None
-        if 'headerimage' in post_data:
-            headerimage = post_data['headerimage']
+        avatar = None
+        if 'avatar' in request.FILES:
+            avatar = request.FILES['avatar']
         if password != confirm_password:
             return JsonResponse({
                 'status': 'fail',
@@ -98,7 +98,7 @@ def register(request):
                 username=username, nickname=nickname,
                 password=password, email=email,
                 gender=gender, phone=phone,
-                birday=birday, image=headerimage
+                birday=birday, image=avatar
             )
             u.save()
         except:

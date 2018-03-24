@@ -12,13 +12,15 @@ auth_routes = [
     url(r'^auth/csrf$', views.send_csrf, name='send csrf token'),
     url(r'^auth/login/$', views.login, name='login'),
     url(r'^auth/register/$', views.register, name='register'),
-    url(r'^auth/username-exists/$', views.username_exists, name='check unique username'),
+    url(r'^auth/usernameexists/$', views.username_exists, name='check unique username'),
 ]
 
 user_data_routes = [
-    url(r'^user/get-data/$', views.get_user_data, name='get user data'),
+    # 根據cookie中的token獲取username,再根據username獲取用戶詳情
+    url(r'^user/getdata/$', views.get_user_data, name='get user data'),
+
     url(r'^user/update/$', views.update_data, name='update user data'),
-    url(r'^user/update-password/$', views.update_password, name='update user password'),
+    url(r'^user/updatepassword/$', views.update_password, name='update user password'),
     url(r'^user/delete/$', views.delete_account, name='delete user account'),
 
 ]
