@@ -42,18 +42,5 @@ comment_routes = [
     url(r'^comment/(?P<id>[0-9]+)/$', views.update_comment, name='update comment'),
 ]
 
-auth_routes = [
-    url(r'^auth/csrf$', views.send_csrf, name='send csrf token'),
-    url(r'^auth/login/$', views.login, name='login'),
-    url(r'^auth/register/$', views.register, name='register'),
-    url(r'^auth/username-exists/$', views.username_exists, name='check unique username'),
-]
 
-user_data_routes = [
-    url(r'^user/get-data/$', views.get_user_data, name='get user data'),
-    url(r'^user/update/$', views.update_data, name='update user data'),
-    url(r'^user/update-password/$', views.update_password, name='update user password'),
-    url(r'^user/delete/$', views.delete_account, name='delete user account')
-]
-
-urlpatterns = videos_routes + rate_routes + auth_routes + user_data_routes + comment_routes + test
+urlpatterns = videos_routes + rate_routes + comment_routes + test

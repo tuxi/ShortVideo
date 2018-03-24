@@ -6,15 +6,15 @@
 # @Software: PyCharm
 
 from django.utils.decorators import decorator_from_middleware
-from video.middlewares.jwt_authentication import JwtAuthentication
-from django.contrib.auth.models import User
+from account.middlewares.jwt_authentication import JwtAuthentication
+from account.models import UserProfile
 from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 import json
 
-from video.utils import get_token_data, create_login_token
-from video.validators import validate_email, validate_password
+from account.utils import get_token_data, create_login_token
+from account.validators import validate_email, validate_password
 
 @decorator_from_middleware(JwtAuthentication)
 def get_user_data(request):
@@ -22,8 +22,8 @@ def get_user_data(request):
     username = token['username']
 
     try:
-        u = User.objects.get(username=username).values('username', 'email')
-    except User.DoesNotExist:
+        u = UserProfile.objects.get(username=username).values('username', 'email')
+    except UserProfile.DoesNotExist:
         return JsonResponse({
             'status': 'fail',
             'data': {
@@ -56,7 +56,7 @@ def update_data(request):
         }, status=500)
 
     # get user object
-    u = User.objects.get(username=username)
+    u = UserProfile.objects.get(username=username)
     u.email = new_email
     try:
         u.save()
@@ -122,7 +122,7 @@ def delete_account(request):
     token = get_token_data(request)
     username = token['username']
 
-    u = User.objects.get(username=username)
+    u = UserProfile.objects.get(username=username)
     try:
         u.delete()
     except:

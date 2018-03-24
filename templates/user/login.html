@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-    <form method="post" action="{% url 'video:login' %}">
+    <form method="post" action="{% url 'account:login' %}">
         {% csrf_token %}
         <div>登錄</div>
         <table>

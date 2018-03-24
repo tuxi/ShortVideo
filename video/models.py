@@ -6,10 +6,7 @@
 # @Software: PyCharm
 
 from __future__ import unicode_literals
-
-from datetime import datetime
-
-from django.contrib.auth.models import User
+from account.models import UserProfile
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
@@ -53,7 +50,7 @@ class VideoItem(models.Model):
     upload_time = models.DateTimeField('上传时间', default=timezone.now)
     pub_time = models.DateTimeField('发布时间', blank=True, null=True)
     views = models.PositiveIntegerField('观看次数', default=0)
-    user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, verbose_name='用户', on_delete=models.CASCADE)
     category = models.ForeignKey('Category', verbose_name='分类', on_delete=models.CASCADE, blank=True, null=True)
     comment_status = models.CharField('评论状态', max_length=1, choices=COMMENT_STATUS, default='o')
     status = models.CharField('视频状态', max_length=1, choices=STATUS_CHOICES, default='p')
@@ -104,7 +101,7 @@ class Category(models.Model):
 
 class Likes(models.Model):
     video = models.ForeignKey(VideoItem,verbose_name='视频',on_delete=models.CASCADE)
-    user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, verbose_name='用户', on_delete=models.CASCADE)
     time = models.DateTimeField(verbose_name='时间',auto_now_add=True)
 
     def __str__(self):
@@ -114,7 +111,6 @@ class Likes(models.Model):
         verbose_name = '点赞'
         verbose_name_plural = verbose_name
 
-VideoItem
 class Rating(models.Model):
     video = models.ForeignKey(VideoItem, on_delete=models.CASCADE)
     rating = models.PositiveIntegerField()

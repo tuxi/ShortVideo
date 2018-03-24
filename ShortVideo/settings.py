@@ -38,7 +38,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'video.apps.VideoConfig',
-    'videokit.apps.VideokitConfig'
+    'videokit.apps.VideokitConfig',
+    'account.apps.AccountConfig'
 )
 
 MIDDLEWARE_CLASSES = [
@@ -123,6 +124,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 ROOT_URLCONF = 'ShortVideo.urls'
+AUTH_USER_MODEL = 'account.UserProfile'
 
 WSGI_APPLICATION = 'ShortVideo.wsgi.application'
 
@@ -137,8 +139,19 @@ STATIC_URL = '/static/'
 STATICFILES = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL='/media/'
-MEDIA_ROOT=os.path.join(BASE_DIR,'media')
+MEDIA_ROOT=os.path.join(BASE_DIR, 'media')
+
+if not os.path.isdir(MEDIA_ROOT):
+    os.mkdir(MEDIA_ROOT)
+
 
 
 # 分页
 PAGINATE_BY = 10
+
+
+######################################################################
+UPLOAD_AVATAR_AVATAR_ROOT = os.path.join(MEDIA_ROOT, 'avatar')
+if not os.path.isdir(UPLOAD_AVATAR_AVATAR_ROOT):
+    os.mkdir(UPLOAD_AVATAR_AVATAR_ROOT)
+

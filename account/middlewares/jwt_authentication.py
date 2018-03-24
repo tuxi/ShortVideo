@@ -8,7 +8,7 @@
 from django.core.exceptions import PermissionDenied
 import jwt
 from django.conf import settings
-from video import utils
+from account import utils
 
 # since I am using the middleware on a per-view basis I need to define the process_request | process_response
 # methods and not the __init__ | __call__ ones

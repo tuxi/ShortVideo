@@ -10,7 +10,7 @@ import math
 import json
 
 from ..models import Comment, VideoItem
-from video.utils import get_token_data
+from account.utils import get_token_data
 
 # @csrf_exempt # temporary decorator to remove csrf, just to test with postman
 def comment(request):

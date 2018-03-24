@@ -8,7 +8,7 @@
 from django.http import JsonResponse
 import json
 
-from video.utils import get_token_data
+from account.utils import get_token_data
 from ..models import Rating, VideoItem
 
 

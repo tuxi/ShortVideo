@@ -9,11 +9,11 @@ import json
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Func
 
-from video.utils import get_token_data
+from account.utils import get_token_data
 from ..models import VideoItem, Rating, Comment
-from video.middlewares.jwt_authentication import JwtAuthentication
+from account.middlewares.jwt_authentication import JwtAuthentication
 from django.utils.decorators import decorator_from_middleware
-from django.contrib.auth.models import User
+from account.models import UserProfile
 from django.core import serializers
 
 @decorator_from_middleware(JwtAuthentication)
@@ -26,8 +26,8 @@ def new_video(request):
     username = token['username']
 
     try:
-        u = User.objects.get(username=username)#.values('username', 'email')
-    except User.DoesNotExist:
+        u = UserProfile.objects.get(username=username)#.values('username', 'email')
+    except UserProfile.DoesNotExist:
         return JsonResponse({
             'status': 'fail',
             'data': {

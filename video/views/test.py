@@ -6,20 +6,12 @@
 # @Software: PyCharm
 import json
 
-from django.contrib.auth import authenticate
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.views.generic import ListView
 from video.models import VideoItem, Category, Likes
-from ShortVideo.settings import PAGINATE_BY
 from video.forms import MediaItemUploadForm
-from django.http import JsonResponse
-from django.core.exceptions import ValidationError
-
-from video.utils import create_login_token
-from video.validators import validate_password, validate_email
-from django.contrib.auth.models import User
+from account.views import register
 
 def index(request):
     template = 'video/video_index.html'
@@ -60,52 +52,11 @@ def test_upload(request):
 def test_register(request):
     template = 'user/register.html'
     if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        confirm_password = request.POST['confirm_password']
-        sex = request.POST['sex']
-        phone1 = request.POST['phone1']
-        if password != confirm_password:
-            return JsonResponse({
-                'status': 'fail',
-                'data': {
-                    'message': '兩次密碼不一致'
-                }
-            }, status=500)
-        try:
-            validate_password(password)
-            validate_email(email)
-        except ValidationError as e:
-            return JsonResponse({
-                'status': 'fail',
-                'data': {
-                    'message': str(e)
-                }
-            }, status=500)
-
-        # register user
-        try:
-            u = User.objects.create_user(username=username, password=password, email=email)
-            u.save()
-        except Exception as e:
-            error = str(e)
-            if len(error) == 0:
-                error = 'There was an error during registration'
-            return JsonResponse({
-                'status': 'fail',
-                'data': {
-                    'message': error
-                }
-            }, status=500)
-
-        # login user
-        return test_login(request, True, {'username': username, 'email': email})
-
+        return register(request)
 
     return render(request, template)
 
-def test_login(request, redirect_after_registration=False, registration_data=None):
+def test_login(request):
     template = 'user/login.html'
 
     return render(request, template)

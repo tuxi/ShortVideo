@@ -1,12 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
+
+
     <form method="post" action="{% url 'video:test_register' %}">
         {% csrf_token %}
         <div>注册账号</div>
         <table>
+            <h4>從你的電腦選擇圖片</h4>
+            <input type="file" name="headerimage" id="js-upload-files" multiple>
+
             <tr>
                 <td><span>用户名</span></td>
                 <td><input type="text" name="username"/></td>
+            </tr>
+            <tr>
+                <td><span>昵稱</span></td>
+                <td><input type="text" name="nickname"/></td>
             </tr>
             <tr>
                 <td><span>email</span></td>
@@ -22,19 +31,26 @@
             </tr>
             <tr>
                 <td>性别</td>
-                <td><input type="radio" id="male" name="sex" checked/>男<input type="radio" id="female"
-                                                                                   name="user_sex"/>女
+                <td>
+                    <input type="radio" id="male" name="gender" checked/>男
+                    <input type="radio" id="female" name="gender"/>女
                 </td>
             </tr>
             <tr>
                 <td>手机号码</td>
-                <td><input type="text" name="phone1"/></td>
+                <td><input type="text" name="phone"/></td>
             </tr>
             <tr>
                 <td colspan="2"><input type="checkbox" checked/>我已看过并接受<a href="#">《用户协议》</a></td>
             </tr>
             <tr>
-                <td colspan="2"><button type="submit">立即注冊</button></td>
+                <td>生日</td>
+                <td><input type="date" name="birday"/></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <button type="submit">立即注冊</button>
+                </td>
 
             </tr>
         </table>

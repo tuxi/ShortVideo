@@ -5,7 +5,5 @@
 # @File    : __init__.py.py
 # @Software: PyCharm
 
-from .comments import *
-from .videos import *
-from .ratings import *
-from .test import *
+from .auth import *
+from .account import *
