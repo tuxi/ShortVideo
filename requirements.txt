@@ -6,6 +6,6 @@ Pillow==4.0.0
 amqp==2.1.4
 appdirs==1.4.0
 redis==2.10.5
-# 用户授权
+# 用户授权, 基於token認證的方式
 PyJWT==1.6.1
 gunicorn==19.7.1

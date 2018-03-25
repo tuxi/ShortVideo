@@ -21,7 +21,7 @@ def send_csrf(request):
     csrf_token = get_token(request)
     return JsonResponse({
         'status': 'success',
-        'data': csrf_token
+        'csrftoken': csrf_token
     })
 
 def username_exists(request):
@@ -124,6 +124,8 @@ def register(request):
 
 def login(request, redirect_after_registration=False, registration_data=None):
     '''登錄完成後返回token,並將token放在cookie中'''
+
+    user_dic = {}
     if redirect_after_registration:
         token = create_login_token(registration_data)
     else:
@@ -132,9 +134,12 @@ def login(request, redirect_after_registration=False, registration_data=None):
             username = post_data['username']
             password = post_data['password']
         except Exception as e:
-            username = request.POST['username']
-            password = request.POST['password']
-
+            if request.method == 'POST':
+                username = request.POST['username']
+                password = request.POST['password']
+            else:
+                username = request.GET['username']
+                password = request.GET['password']
         u = authenticate(username=username, password=password)
         # if authenticated, create and return token
         if u is not None:
@@ -143,11 +148,21 @@ def login(request, redirect_after_registration=False, registration_data=None):
             return JsonResponse({
                 'status': 'fail'
             }, status=401)
-
+        user_dic = {
+            'username': u.username,
+            'userid': u.get_uid(),
+            'nickname': u.nickname,
+            'birday': u.birday,
+            'gender': u.gender,
+            'address': u.address,
+            'phone': u.phone,
+            'avatar': u.image.url
+        }
     print('token is', token['token'])
 
     res = JsonResponse({
         'status': 'success',
+        'user': user_dic,
         'token': str(token['token'], 'utf-8')
     })
     res.set_cookie('token', value=token['token'], expires=token['exp'])
