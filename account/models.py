@@ -24,7 +24,6 @@ class UserProfile(AbstractUser):
     image = models.ImageField(upload_to=UPLOAD_AVATAR_AVATAR_ROOT,
                               blank=True, null=True, verbose_name="用戶頭像")
 
-
     def get_uid(self):
         return self.id
 
