@@ -13,7 +13,7 @@ echo "Starting $NAME as `whoami`"
 
 # Activate the virtual environment
 cd $DJANGODIR
-source /home/parallels/.virtualenvs/ShortVideo/bin/activate
+source /home/ubuntu/.virtualenvs/ShortVideo/bin/activate
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 
@@ -24,7 +24,7 @@ test -d $RUNDIR || mkdir -p $RUNDIR
 # Start your Django Unicorn
 # Programs meant to be run under supervisor should not daemonize themselves (do not use --daemon)
 #gunicorn目录(刚刚创建的虚拟环境的bin目录中)
-exec /home/parallels/.virtualenvs/ShortVideo/bin/gunicorn  ${DJANGO_WSGI_MODULE}:application \
+exec /home/ubuntu/.virtualenvs/ShortVideo/bin/gunicorn  ${DJANGO_WSGI_MODULE}:application \
 --name $NAME \
 --workers $NUM_WORKERS \
 --user=$USER --group=$GROUP \
