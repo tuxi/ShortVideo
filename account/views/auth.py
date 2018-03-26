@@ -148,6 +148,10 @@ def login(request, redirect_after_registration=False, registration_data=None):
             return JsonResponse({
                 'status': 'fail'
             }, status=401)
+        try:
+            image_url = u.image_url()
+        except Exception as e:
+            image_url = ""
         user_dic = {
             'username': u.username,
             'userid': u.get_uid(),
@@ -156,7 +160,7 @@ def login(request, redirect_after_registration=False, registration_data=None):
             'gender': u.gender,
             'address': u.address,
             'phone': u.phone,
-            'avatar': u.image.url
+            'avatar': image_url
         }
     print('token is', token['token'])
 

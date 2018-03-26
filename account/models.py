@@ -22,7 +22,13 @@ class UserProfile(AbstractUser):
     phone = models.CharField(max_length=11, null=True, blank=True)
     # 用户头像
     image = models.ImageField(upload_to=UPLOAD_AVATAR_AVATAR_ROOT,
-                              blank=True, null=True, verbose_name="用戶頭像")
+                              blank=True, null=True, verbose_name="用戶頭像", default="default.png")
+
+    @property
+    def image_url(self):
+        if self.image and hasattr(self.image, "url"):
+            return self.image.url
+        return None
 
     def get_uid(self):
         return self.id
