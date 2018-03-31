@@ -22,7 +22,7 @@ class UserProfile(AbstractUser):
     phone = models.CharField(max_length=11, null=True, blank=True)
     # 用户头像
     image = models.ImageField(upload_to=UPLOAD_AVATAR_AVATAR_ROOT,
-                              blank=True, null=True, verbose_name="用戶頭像", default="default.png")
+                              blank=True, null=True, verbose_name="用戶頭像")
 
     @property
     def image_url(self):

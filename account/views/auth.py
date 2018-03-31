@@ -45,6 +45,10 @@ def username_exists(request):
 
 def register(request):
     if request.method != 'POST':
+        return JsonResponse({
+            "status": "fail",
+            "message": "必须是POST"
+        })
         pass
 
     try:

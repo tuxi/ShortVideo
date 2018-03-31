@@ -89,7 +89,7 @@ class VideoItem(models.Model):
 
     def to_dict(self):
         # 序列化model, foreign=True,并且序列化主键对应的mode, exclude_attr 列表里的字段
-        dict = serializer(data=self, foreign=True, exclude_attr=('password',))
+        dict = serializer(data=self, foreign=True, exclude_attr=('password', 'image'))
         dict['video'] = self.video.url
         dict['video_thumbnail'] = self.video_thumbnail.url
         dict['video_mp4'] = self.video_mp4.url
