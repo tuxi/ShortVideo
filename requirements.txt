@@ -9,3 +9,5 @@ redis==2.10.5
 # 用户授权, 基於token認證的方式
 PyJWT==1.6.1
 gunicorn==19.7.1
+# 将 Django 数据或者 python data 序列化为 json|raw 数据
+django-simple-serializer

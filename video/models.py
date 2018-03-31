@@ -10,10 +10,12 @@ from account.models import UserProfile
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
-
+from django.db.models import Avg, Count, Func
 from ShortVideo import settings
 from videokit.models import VideoField, VideoSpecField
 from django.core.validators import MinLengthValidator
+from dss.Serializer import serializer
+import json
 
 def upload_to(instance, filename):
     return 'media_items{filename}'.format(filename=filename)
@@ -45,7 +47,7 @@ class VideoItem(models.Model):
     video_thumbnail = models.ImageField(null=True, blank=True)
     video_mp4 = VideoSpecField(source = 'video', format = 'mp4')
     video_ogg = VideoSpecField(source='video', format='ogg')
-    title = models.CharField('视频名称', max_length=200, unique=True)
+    title = models.CharField('视频名称', max_length=200, unique=False)
     describe = models.TextField('描述')
     upload_time = models.DateTimeField('上传时间', default=timezone.now)
     pub_time = models.DateTimeField('发布时间', blank=True, null=True)
@@ -78,8 +80,52 @@ class VideoItem(models.Model):
         self.views += 1
         self.save(update_fields=['views'])
 
+    def comment_list(self):
+        comment_list = Comment.objects.filter(video=self).values()
+        return comment_list
+
     def get_comment_num(self):
         return len(self.comment_list())
+
+    def to_dict(self):
+        # 序列化model, foreign=True,并且序列化主键对应的mode, exclude_attr 列表里的字段
+        dict = serializer(data=self, foreign=True, exclude_attr=('password',))
+        dict['video'] = self.video.url
+        dict['video_thumbnail'] = self.video_thumbnail.url
+        dict['video_mp4'] = self.video_mp4.url
+        dict['video_ogg'] = self.video_ogg.url
+
+
+        ############ 獲取該視頻的評級
+        r = Rating.objects.filter(video=self).values('rating').aggregate(
+            avg_rating=Avg('rating'),
+            rating_count=Count('rating')
+        )
+        avg_rating = r['avg_rating']
+        rating_count = r['rating_count']
+
+        # 獲取該視頻的所有評論
+        c = self.comment_list()
+
+        dict['rating'] = {
+            'avg': '{:.1f}'.format(avg_rating) if avg_rating is not None else None,
+            'count': rating_count
+        }
+        dict['comments'] = list(c)
+        return dict
+
+    def to_json(self):
+        dict = self.to_dict()
+        return json.dumps(dict)
+
+    # 将一组VideoItem集合转换为一组字典集合
+    @classmethod
+    def to_dict_list(cls, video_list):
+        videos = []
+        for video in video_list:
+            videos.append(video.to_dict())
+        return videos
+
 
 class Category(models.Model):
     """视频分类"""
@@ -99,6 +145,13 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def to_dict(self):
+        dict = serializer(data=self, foreign=True)
+        return dict
+
+    def to_json(self):
+        return serializer(data=self, output_type='json', foreign=True)
+
 class Likes(models.Model):
     video = models.ForeignKey(VideoItem,verbose_name='视频',on_delete=models.CASCADE)
     user = models.ForeignKey(UserProfile, verbose_name='用户', on_delete=models.CASCADE)
@@ -110,6 +163,13 @@ class Likes(models.Model):
     class Meta:
         verbose_name = '点赞'
         verbose_name_plural = verbose_name
+
+    def to_dict(self):
+        dict = serializer(data=self, foreign=True)
+        return dict
+
+    def to_json(self):
+        return serializer(data=self, output_type='json', foreign=True)
 
 class Rating(models.Model):
     video = models.ForeignKey(VideoItem, on_delete=models.CASCADE)
@@ -123,6 +183,12 @@ class Rating(models.Model):
         self.full_clean()
         super(Rating, self).save(*args, **kwargs)
 
+    def to_dict(self):
+        dict = serializer(data=self, foreign=True)
+        return dict
+
+    def to_json(self):
+        return serializer(data=self, output_type='json', foreign=True)
 
 class Comment(models.Model):
     video = models.ForeignKey(VideoItem, on_delete=models.CASCADE)
@@ -136,3 +202,10 @@ class Comment(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(Comment, self).save(*args, **kwargs)
+
+    def to_dict(self):
+        dict = serializer(data=self, foreign=True)
+        return dict
+
+    def to_json(self):
+        return serializer(data=self, output_type='json', foreign=False)

@@ -141,12 +141,13 @@ def login(request, redirect_after_registration=False, registration_data=None):
                 username = request.GET['username']
                 password = request.GET['password']
         u = authenticate(username=username, password=password)
-        # if authenticated, create and return token
+        # 如果用戶已被認證,則根據用戶名和用戶郵箱創建token,並返回客戶端
         if u is not None:
             token = create_login_token({'username': u.username, 'email': u.email})
         else:
             return JsonResponse({
-                'status': 'fail'
+                'status': 'fail',
+                'message': '賬號或密碼錯誤',
             }, status=401)
         user_dic = {
             'username': u.username,

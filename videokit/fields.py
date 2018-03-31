@@ -1,3 +1,4 @@
+import errno
 from django.conf import settings
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
@@ -263,6 +264,12 @@ class VideoSpecFieldFile(VideoFieldFile):
         if self.name:
             base = getattr(settings, 'BASE_DIR', '')
             temp_file_dir = os.path.join(base, getattr(settings, 'VIDEOKIT_TEMP_DIR', VideokitConfig.VIDEOKIT_TEMP_DIR))
+            if not os.path.exists(temp_file_dir):
+                try:
+                    os.makedirs(temp_file_dir)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
             temp_file = os.path.join(temp_file_dir, os.path.basename(self.name))
 
             if os.path.exists(temp_file):

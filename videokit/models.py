@@ -227,6 +227,9 @@ class VideoField(models.FileField):
         defaults.update(kwargs)
         return super(VideoField, self).formfield(**defaults)
 
+    def __str__(self):
+        return self.url
+
 class VideoSpecField(VideoField):
     attr_class = VideoSpecFieldFile
     descriptor_class = VideoSpecFileDescriptor
