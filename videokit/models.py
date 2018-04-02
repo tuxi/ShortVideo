@@ -238,7 +238,7 @@ class VideoField(models.FileField):
         if not file and not force:
             return
 
-        gif_field_filled = not (self.gif_field and not getattr(instance, self.gif_field))
+        gif_field_filled = not(self.gif_field and not getattr(instance, self.gif_field))
 
         if gif_field_filled and not force:
             return

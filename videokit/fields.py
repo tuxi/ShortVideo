@@ -109,11 +109,13 @@ def get_video_duration(file):
 
     return 0
 
+# 生成缩略图
 def get_video_thumbnail(file):
     path = os.path.join(settings.MEDIA_ROOT, file.name)
     thumbnail_name = '%s%s' % (file.name, '.thumb.jpg')
     thumbnail_path = os.path.join(settings.MEDIA_ROOT, thumbnail_name)
-
+    if os.path.exists(thumbnail_path):
+        return
     if os.path.isfile(path):
         try:
             process = subprocess.Popen(
@@ -143,17 +145,22 @@ def get_video_thumbnail_gif(file):
     path = os.path.join(settings.MEDIA_ROOT, file.name)
     gif_name = '%s%s' % (file.name, '.thumb.gif')
     gif_path = os.path.join(settings.MEDIA_ROOT, gif_name)
-
+    if os.path.exists(gif_path):
+        return
     if os.path.isfile(path):
         try:
+            # 执行ffmpeg命令
             process = subprocess.Popen(
                 ['ffmpeg', '-ss', '00:00:01', '-t', '3', '-i', path, '-vf', 'crop=iw:ih*3/3', '-s', '640x480', '-r', '7', gif_path],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
             )
             if process.wait() == 0:
                 return gif_name
         except OSError:
             pass
+        finally:
+            print("___")
     return ''
 
 
