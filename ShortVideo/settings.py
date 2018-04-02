@@ -24,7 +24,7 @@ SECRET_KEY = 's$-9&3j^=+$&^wi=hu4q%$2x#(6giqtendmaa1a=7ozma4zsuh'
 JWT_SECRET = base64.b64encode(b'ScaredCherriesEatSurelySimpleVulcansParticipateIntensely')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 

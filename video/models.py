@@ -36,6 +36,7 @@ class VideoItem(models.Model):
                        mimetype_field='video_mimetype',
                        duration_field='video_duration',
                        thumbnail_field='video_thumbnail',
+                       gif_field='video_gif',
                        )
     video_width = models.IntegerField(null=True, blank=True)
     video_height = models.IntegerField(null=True, blank=True)
@@ -45,6 +46,8 @@ class VideoItem(models.Model):
     video_duration = models.IntegerField(null=True, blank=True)
     # 视频缩略图
     video_thumbnail = models.ImageField(null=True, blank=True)
+    # 视频前3秒的gif图
+    video_gif = models.ImageField(null=True, blank=True)
     video_mp4 = VideoSpecField(source = 'video', format = 'mp4')
     video_ogg = VideoSpecField(source='video', format='ogg')
     title = models.CharField('视频名称', max_length=200, unique=False)
@@ -94,7 +97,10 @@ class VideoItem(models.Model):
         dict['video_thumbnail'] = self.video_thumbnail.url
         dict['video_mp4'] = self.video_mp4.url
         dict['video_ogg'] = self.video_ogg.url
-
+        video_gif = self.video_gif.url
+        if video_gif is None:
+            video_gif = ''
+        dict['video_gif'] = video_gif
 
         ############ 獲取該視頻的評級
         r = Rating.objects.filter(video=self).values('rating').aggregate(

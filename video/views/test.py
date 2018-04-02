@@ -18,7 +18,7 @@ def index(request):
 
     media_items = VideoItem.objects.all()
 
-    print(len(media_items))
+    #print(len(media_items))
     context = {
         'media_items' : media_items,
     }
