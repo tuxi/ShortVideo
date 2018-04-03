@@ -64,8 +64,8 @@ target/
 .iml
 
 
-# migrations/
+migrations/
 # 忽略migrations目錄下除了__init__.py以外的所有文件
-!migrations/__init__.py
+#!migrations/__init__.py
 collectedstatic/
 media/

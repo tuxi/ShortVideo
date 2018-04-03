@@ -5,7 +5,7 @@
 # @File    : videos.py
 # @Software: PyCharm
 import json
-
+from dss.Serializer import serializer
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Func
 
@@ -20,7 +20,10 @@ from django.core import serializers
 def new_video(request):
     # 上传文件必须是post请求
     if request.method != 'POST':
-        pass
+        return JsonResponse({
+            'status': 'fail',
+            'message': '上傳視頻必須使用POST',
+        })
 
     token = get_token_data(request)
     username = token['username']
@@ -30,15 +33,16 @@ def new_video(request):
     except UserProfile.DoesNotExist:
         return JsonResponse({
             'status': 'fail',
-            'data': {
-                'message': 'The username does not exist'
-            }
+            'message': '用戶名不存在',
         }, status=500)
 
     user_id = u.pk
     # 用户必须登录
     if user_id == None:
-        pass
+        return JsonResponse({
+            'status': 'fail',
+            'message': '上傳視頻,用戶必須登錄'
+        })
 
     # 获取视频数据
     title = request.POST.get('title', '')
@@ -55,69 +59,48 @@ def new_video(request):
         except Exception as e:
             return JsonResponse({
                 'status': 'fail',
-                'data': {
-                    'message': str(e) if type(e) == ValueError else 'Error while saving movie'
-                }
+                'message': str(e) if type(e) == ValueError else '保存視頻出錯'
             }, status=500)
-
-        return JsonResponse({
-            'status': 'success',
-            'data': {
-                'title': m.title
-            }
-        })
+        # 重新查詢一遍視頻,返回給客戶端
+        return getVideoDetailByVideoId(m.pk)
     return JsonResponse({
         'status': 'fail',
-        'data': {
-            'message': ""
-        }
+        'message': "未知錯誤"
     })
 
 
 def video_detail(request):
     if request.method != 'GET':
-        pass
+        return JsonResponse({
+            'status': 'fail',
+            'message': '必须使用GET方法请求',
+        })
 
     # 获取视频
     try:
         data = json.loads(request.body.decode('utf-8'))
-        video_id = data['data']
+        video_id = data['video_id']
     except Exception as e:
-        video_id = request.GET['user_id']
+        video_id = request.GET['video_id']
+    return getVideoDetailByVideoId(video_id)
+
+
+# 公共方法,根據視頻的id,查詢視頻詳情,並以json的形式返回
+def getVideoDetailByVideoId(video_id):
     try:
         m = VideoItem.objects.get(pk=video_id)
     except VideoItem.DoesNotExist:
         return JsonResponse({
             'status': 'success',
-            'data': {
-                'rating': {
-                    'avg': None,
-                    'comments': None
-                }
-            }
+            'message': '视频不存在'
         })
 
-    # get rating
-    r = Rating.objects.filter(video=m)\
-        .values('rating')\
-        .aggregate(
-            avg_rating=Avg('rating'),
-            rating_count=Count('rating')
-        )
-    avg_rating = r['avg_rating']
-    rating_count = r['rating_count']
-
-    # get comments
-    c = Comment.objects.filter(video=m).values('body', 'username')
-
+    # 对象转化为字典
+    videoDict = m.to_dict()
     return JsonResponse({
         'status': 'success',
         'data': {
-            'rating': {
-                'avg': '{:.1f}'.format(avg_rating) if avg_rating is not None else None,
-                'count': rating_count
-            },
-            'comments': list(c)
+            'video': videoDict,
         }
     })
 
@@ -128,7 +111,10 @@ class Round(Func):
 def getVideoByUserId(request):
     '''根据用户id获取他所有的视频'''
     if request.method != 'GET':
-        pass
+        return JsonResponse({
+            'status': 'fail',
+            'message': '必须使用GET方法请求',
+        })
 
     # 获取所有请求的视频id
     user_id = request.GET.get('user_id', '')
@@ -138,19 +124,24 @@ def getVideoByUserId(request):
         comment_count=Count('comment', distinct=True)
     )#.values()
 
-    video_list = serializers.serialize('json', video_list)
+    videos = VideoItem.to_dict_list(video_list)
+    if videos == None:
+        videos = []
 
     return JsonResponse({
         'status': 'success',
         'data': {
-            'videos': video_list
+            'videos': videos
         }
     })
 
 def getVideoByIds(request):
     '''根据一组id获取对应的一组视频'''
     if request.method != 'GET':
-        pass
+        return JsonResponse({
+            'status': 'fail',
+            'message': '必须使用GET方法请求',
+        })
 
     # 获取所有请求的视频id
     video_ids = request.GET.get('ids', '').split(',')
@@ -160,29 +151,33 @@ def getVideoByIds(request):
         comment_count=Count('comment', distinct=True)
     )#.values()
 
-    video_lsit = serializers.serialize('json', video_list)
-    if video_list == None:
-        video_list = []
+    videos = VideoItem.to_dict_list(video_list)
+    if videos == None:
+        videos = []
 
     return JsonResponse({
         'status': 'success',
         'data': {
-            'videos': video_lsit
+            'videos': videos
         }
     })
 def getAll(request):
     '''获取全部视频'''
     if request.method != 'GET':
-        pass
+        return JsonResponse({
+            'status': 'fail',
+            'message': '必须使用GET方法请求',
+        })
 
-    video_list = VideoItem.objects.all()
     # 序列化对象
-    video_list = serializers.serialize('json', video_list)
-    if video_list == None:
-        video_list = []
+    # video_list = serializers.serialize('json', video_list)
+    video_list = VideoItem.objects.all()
+    videos = VideoItem.to_dict_list(video_list)
+    if videos == None:
+        videos = []
     return JsonResponse({
         'status': 'success',
         'data': {
-            'videos': video_list
+            'videos': videos
         }
     })

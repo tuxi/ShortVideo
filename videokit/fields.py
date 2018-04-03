@@ -1,3 +1,4 @@
+import errno
 from django.conf import settings
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
@@ -108,11 +109,13 @@ def get_video_duration(file):
 
     return 0
 
+# 生成缩略图
 def get_video_thumbnail(file):
     path = os.path.join(settings.MEDIA_ROOT, file.name)
     thumbnail_name = '%s%s' % (file.name, '.thumb.jpg')
     thumbnail_path = os.path.join(settings.MEDIA_ROOT, thumbnail_name)
-
+    if os.path.exists(thumbnail_path):
+        return
     if os.path.isfile(path):
         try:
             process = subprocess.Popen(
@@ -126,6 +129,40 @@ def get_video_thumbnail(file):
             pass
 
     return ''
+
+# 截取视频前3秒 并转化为gif
+# ffmpeg -ss 00:00:01 -t 3 -i /storage/emulated/0/DCIM/dateme/video/yiba_v_1497949777519.mp4 -vf crop=iw:ih*2/3 -s 320x240 -r 7 /storage/emulated/0/DCIM/dateme/gif/yiba_gif_1497949820078.gif
+def get_video_thumbnail_gif(file):
+    '''
+    1、-ss 00：00：01表示从视频第一秒开始截取
+    2、- t 表示截图3秒钟的视频
+    3、-vf crop=iw:ih*2/3 表示截取视频的部分区域，其中宽为视频宽度，高为原视频的2/3
+    4、-r 7 表示每秒帧率为7帧
+    5、最后直接加上要生成的gif的路径就会把截取好的视频输出为gif了。
+    :param file: 视频文件
+    :return:
+    '''
+    path = os.path.join(settings.MEDIA_ROOT, file.name)
+    gif_name = '%s%s' % (file.name, '.thumb.gif')
+    gif_path = os.path.join(settings.MEDIA_ROOT, gif_name)
+    if os.path.exists(gif_path):
+        return
+    if os.path.isfile(path):
+        try:
+            # 执行ffmpeg命令
+            process = subprocess.Popen(
+                ['ffmpeg', '-ss', '00:00:01', '-t', '3', '-i', path, '-vf', 'crop=iw:ih*3/3', '-s', '640x480', '-r', '7', gif_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            if process.wait() == 0:
+                return gif_name
+        except OSError:
+            pass
+        finally:
+            print("___")
+    return ''
+
 
 class VideoFile(File):
     def _get_width(self):
@@ -158,6 +195,11 @@ class VideoFile(File):
 
     thumbnail = property(_get_thumbnail)
 
+    def _get_thumbnail_gif(self):
+        return self._get_video_thumbnail_gif()
+
+    gif = property(_get_thumbnail_gif)
+
     def _get_video_dimensions(self):
         if not hasattr(self, '_dimensions_cache'):
             self._dimensions_cache = get_video_dimensions(self)
@@ -188,6 +230,12 @@ class VideoFile(File):
 
         return self._thumbnail_cache
 
+    def _get_video_thumbnail_gif(self):
+        if not hasattr(self, '_thumbnail_gif_cache'):
+            self._thumbnail_gif_cache = get_video_thumbnail_gif(self)
+
+        return self._thumbnail_gif_cache
+
 class VideoFileDescriptor(FileDescriptor):
     def __set__(self, instance, value):
         previous_file = instance.__dict__.get(self.field.name)
@@ -199,6 +247,7 @@ class VideoFileDescriptor(FileDescriptor):
             self.field.update_mimetype_field(instance, force = True)
             self.field.update_duration_field(instance, force = True)
             self.field.update_thumbnail_field(instance, force = True)
+            self.field.update_gif_field(instance, force=True)
 
 class VideoFieldFile(VideoFile, FieldFile):
     def delete(self, save = True):
@@ -216,6 +265,9 @@ class VideoFieldFile(VideoFile, FieldFile):
 
         if hasattr(self, '_thumbnail_cache'):
             del self._thumbnail_cache
+
+        if hasattr(self, '_thumbnail_gif_cache'):
+            del self._thumbnail_gif_cache
 
         super(VideoFieldFile, self).delete(save)
 
@@ -263,6 +315,12 @@ class VideoSpecFieldFile(VideoFieldFile):
         if self.name:
             base = getattr(settings, 'BASE_DIR', '')
             temp_file_dir = os.path.join(base, getattr(settings, 'VIDEOKIT_TEMP_DIR', VideokitConfig.VIDEOKIT_TEMP_DIR))
+            if not os.path.exists(temp_file_dir):
+                try:
+                    os.makedirs(temp_file_dir)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
             temp_file = os.path.join(temp_file_dir, os.path.basename(self.name))
 
             if os.path.exists(temp_file):
