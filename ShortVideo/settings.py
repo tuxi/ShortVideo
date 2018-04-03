@@ -152,7 +152,8 @@ PAGINATE_BY = 10
 
 
 ######################################################################
-UPLOAD_AVATAR_AVATAR_ROOT = os.path.join(MEDIA_ROOT, 'avatar')
-if not os.path.isdir(UPLOAD_AVATAR_AVATAR_ROOT):
-    os.mkdir(UPLOAD_AVATAR_AVATAR_ROOT)
+USER_AVATAR_URL = 'avatar'
+USER_AVATAR_ROOT = os.path.join(MEDIA_ROOT, 'avatar')
+if not os.path.isdir(USER_AVATAR_ROOT):
+    os.mkdir(USER_AVATAR_ROOT)
 
