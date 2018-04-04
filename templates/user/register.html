@@ -2,13 +2,12 @@
 {% block content %}
 
 
-    <form method="post" action="{% url 'video:test_register' %}">
+    <form method="post" action="{% url 'video:test_register' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div>注册账号</div>
         <table>
-            <h4>從你的電腦選擇圖片</h4>
-            <input type="file" name="avatar" multiple>
-
+            <h4>選擇圖片</h4>
+            <input id="id_avatar" name="avatar" type="file"/>
             <tr>
                 <td><span>用户名</span></td>
                 <td><input type="text" name="username"/></td>
@@ -46,6 +45,10 @@
             <tr>
                 <td>生日</td>
                 <td><input type="date" name="birday"/></td>
+            </tr>
+            <tr>
+                <td>地址</td>
+                <td><input type="text" name="address"/></td>
             </tr>
             <tr>
                 <td colspan="2">

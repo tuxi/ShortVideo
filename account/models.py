@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from dss.Serializer import serializer
 from ShortVideo.settings import (
-    UPLOAD_AVATAR_AVATAR_ROOT,
+    USER_AVATAR_URL
 )
 # Create your models here.
 
@@ -21,14 +22,13 @@ class UserProfile(AbstractUser):
     # 手机号
     phone = models.CharField(max_length=11, null=True, blank=True)
     # 用户头像
-    image = models.ImageField(upload_to=UPLOAD_AVATAR_AVATAR_ROOT,
-                              blank=True, null=True, verbose_name="用戶頭像")
+    image = models.ImageField(upload_to=USER_AVATAR_URL,
+                              blank=True, verbose_name="用戶頭像")
 
     @property
     def image_url(self):
-        if self.image and hasattr(self.image, "url"):
+        if self.image and hasattr(self.image, 'url'):
             return self.image.url
-        return None
 
     def get_uid(self):
         return self.id
@@ -40,4 +40,8 @@ class UserProfile(AbstractUser):
     def __unicode__(self, ):
         return self.username
 
+    def to_dict(self):
+        # 序列化model, foreign=True,并且序列化主键对应的model, exclude_attr 列表里的字段
+        dict = serializer(data=self, foreign=False, exclude_attr=('password',))
 
+        return dict
