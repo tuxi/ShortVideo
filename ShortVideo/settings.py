@@ -24,7 +24,7 @@ SECRET_KEY = 's$-9&3j^=+$&^wi=hu4q%$2x#(6giqtendmaa1a=7ozma4zsuh'
 JWT_SECRET = base64.b64encode(b'ScaredCherriesEatSurelySimpleVulcansParticipateIntensely')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'videokit.apps.VideokitConfig',
     'account.apps.AccountConfig',
     'gunicorn',
+    'imagekit',
 )
 
 MIDDLEWARE_CLASSES = [
@@ -152,7 +153,8 @@ PAGINATE_BY = 10
 
 
 ######################################################################
-UPLOAD_AVATAR_AVATAR_ROOT = os.path.join(MEDIA_ROOT, 'avatar')
-if not os.path.isdir(UPLOAD_AVATAR_AVATAR_ROOT):
-    os.mkdir(UPLOAD_AVATAR_AVATAR_ROOT)
+USER_AVATAR_URL = 'avatar'
+USER_AVATAR_ROOT = os.path.join(MEDIA_ROOT, 'avatar')
+if not os.path.isdir(USER_AVATAR_ROOT):
+    os.mkdir(USER_AVATAR_ROOT)
 

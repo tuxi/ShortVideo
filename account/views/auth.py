@@ -75,15 +75,17 @@ def register(request):
         birday = None
         if 'birday' in post_data:
             birday = post_data['birday']
+        address = None
+        if 'address' in post_data:
+            address = post_data['address']
+
         avatar = None
         if 'avatar' in request.FILES:
-            avatar = request.FILES['avatar']
+            avatar = request.FILES.get('avatar', None)
         if password != confirm_password:
             return JsonResponse({
                 'status': 'fail',
-                'data': {
-                    'message': '兩次密碼不一致'
-                }
+                'message': '兩次密碼不一致'
             }, status=500)
         try:
             validate_password(password)
@@ -91,9 +93,7 @@ def register(request):
         except ValidationError as e:
             return JsonResponse({
                 'status': 'fail',
-                'data': {
-                    'message': str(e)
-                }
+                'message': str(e)
             }, status=500)
 
         # 注冊用戶
@@ -102,36 +102,36 @@ def register(request):
                 username=username, nickname=nickname,
                 password=password, email=email,
                 gender=gender, phone=phone,
-                birday=birday, image=avatar
+                birday=birday, avatar=avatar,
+                address=address
             )
             u.save()
         except:
             return JsonResponse({
                 'status': 'fail',
-                'data': {
-                    'message': 'There was an error during registration'
-                }
+                'message': 'There was an error during registration'
             }, status=500)
 
         # 跳轉向到登錄界面
-        return login(request, True, {'username': username, 'email': email})
+        return login(request=request, redirect_after_registration=True, redirect_user=u, registration_data={'username': username, 'email': email})
 
     # 用戶名已存在,無法完成注冊, 並告訴客戶端
     return JsonResponse({
         'status': 'fail',
-        'data': {
-            'username_exists': True
-        }
+        'message': 'username exists',
     })
 
 
 
-def login(request, redirect_after_registration=False, registration_data=None):
+def login(request, redirect_after_registration=False, redirect_user=None, registration_data=None):
     '''登錄完成後返回token,並將token放在cookie中'''
 
     user_dic = {}
     if redirect_after_registration:
         token = create_login_token(registration_data)
+        if len(token):
+            if redirect_user:
+                user_dic = redirect_user.to_dict()
     else:
         try:
             post_data = json.loads(request.body.decode('utf-8'))
@@ -153,20 +153,8 @@ def login(request, redirect_after_registration=False, registration_data=None):
                 'status': 'fail',
                 'message': '賬號或密碼錯誤',
             }, status=401)
-        try:
-            image_url = u.image_url()
-        except Exception as e:
-            image_url = ""
-        user_dic = {
-            'username': u.username,
-            'userid': u.get_uid(),
-            'nickname': u.nickname,
-            'birday': u.birday,
-            'gender': u.gender,
-            'address': u.address,
-            'phone': u.phone,
-            'avatar': image_url
-        }
+
+        user_dic = u.to_dict()
     print('token is', token['token'])
 
     res = JsonResponse({

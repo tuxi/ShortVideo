@@ -29,6 +29,7 @@ class VideoField(models.FileField):
                     mimetype_field = None,
                     duration_field = None,
                     thumbnail_field = None,
+                    gif_field = None,
                     **kwargs):
         self.width_field = width_field
         self.height_field = height_field
@@ -36,6 +37,7 @@ class VideoField(models.FileField):
         self.mimetype_field = mimetype_field
         self.duration_field = duration_field
         self.thumbnail_field = thumbnail_field
+        self.gif_field = gif_field
 
         super(VideoField, self).__init__(verbose_name, name, **kwargs)
 
@@ -89,6 +91,9 @@ class VideoField(models.FileField):
         if self.thumbnail_field:
             kwargs['thumbnail_field'] = self.thumbnail_field
 
+        if self.gif_field:
+            kwargs['gif_field'] = self.gif_field
+
         return name, path, args, kwargs
 
     def contribute_to_class(self, cls, name, **kwargs):
@@ -100,6 +105,7 @@ class VideoField(models.FileField):
             signals.post_init.connect(self.update_mimetype_field, sender = cls)
             signals.post_init.connect(self.update_duration_field, sender = cls)
             signals.post_init.connect(self.update_thumbnail_field, sender = cls)
+            signals.post_init.connect(self.update_gif_field, sender= cls)
 
     def update_dimension_fields(self, instance, force = False, *args, **kwargs):
         has_dimension_fields = self.width_field or self.height_field
@@ -222,13 +228,34 @@ class VideoField(models.FileField):
         if self.thumbnail_field:
             setattr(instance, self.thumbnail_field, thumbnail)
 
+    def update_gif_field(self, instance, force = False, *args, **kwargs):
+        has_gif_field = self.gif_field
+        if not has_gif_field:
+            return
+
+        file = getattr(instance, self.attname)
+
+        if not file and not force:
+            return
+
+        gif_field_filled = not(self.gif_field and not getattr(instance, self.gif_field))
+
+        if gif_field_filled and not force:
+            return
+
+        if file:
+            gif = file.gif
+        else:
+            gif = None
+        if self.gif_field:
+            setattr(instance, self.gif_field, gif)
+
+
     def formfield(self, **kwargs):
         defaults = { 'form_class' : VideoFormField }
         defaults.update(kwargs)
         return super(VideoField, self).formfield(**defaults)
 
-    def __str__(self):
-        return self.url
 
 class VideoSpecField(VideoField):
     attr_class = VideoSpecFieldFile
