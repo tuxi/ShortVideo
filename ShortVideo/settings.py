@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'videokit.apps.VideokitConfig',
     'account.apps.AccountConfig',
     'gunicorn',
+    'imagekit',
 )
 
 MIDDLEWARE_CLASSES = [

@@ -102,7 +102,7 @@ def register(request):
                 username=username, nickname=nickname,
                 password=password, email=email,
                 gender=gender, phone=phone,
-                birday=birday, image=avatar,
+                birday=birday, avatar=avatar,
                 address=address
             )
             u.save()

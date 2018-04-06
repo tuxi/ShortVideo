@@ -11,3 +11,6 @@ PyJWT==1.6.1
 gunicorn==19.7.1
 # 将 Django 数据或者 python data 序列化为 json|raw 数据
 django-simple-serializer
+# 用来处理用户上传的头像图片，生成指定尺寸的缩略图（thumbnail）。
+# django-imagekit需要用pillow来处理图像，因此也需要安装pillow。
+django-imagekit==4.0.1
