@@ -4,7 +4,7 @@
 # @Email   : xiaoyuan1314@me.com
 # @File    : account.py
 # @Software: PyCharm
-from PIL import Image
+
 from django.utils.decorators import decorator_from_middleware
 from account.middlewares.jwt_authentication import JwtAuthentication
 from account.models import UserProfile
@@ -12,10 +12,11 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 import json
-import time
+from video.models import VideoItem, Likes
 
 from account.utils import get_token_data, create_login_token
 from account.validators import validate_email, validate_password
+from dss.Serializer import serializer
 
 @decorator_from_middleware(JwtAuthentication)
 def get_user_data(request):
@@ -27,9 +28,7 @@ def get_user_data(request):
     except UserProfile.DoesNotExist:
         return JsonResponse({
             'status': 'fail',
-            'data': {
-                'message': 'The username does not exist'
-            }
+            'message': 'The username does not exist'
         }, status=500)
 
     return JsonResponse({
@@ -51,9 +50,7 @@ def update_data(request):
     except ValidationError as e:
         return JsonResponse({
             'status': 'fail',
-            'data': {
-                'message': str(e)
-            }
+            'message': str(e)
         }, status=500)
 
     # get user object
@@ -64,9 +61,7 @@ def update_data(request):
     except:
         return JsonResponse({
             'status': 'fail',
-            'data': {
-                'message': 'There was an error while updating user data'
-            }
+            'message': 'There was an error while updating user data'
         }, status=500)
 
     token = create_login_token({'username': u.username, 'email': u.email})
@@ -89,9 +84,7 @@ def update_password(request):
     except ValidationError as e:
         return JsonResponse({
             'status': 'fail',
-            'data': {
-                'message': str(e)
-            }
+            'message': str(e)
         }, status=500)
 
     # check old password and get user object
@@ -103,9 +96,7 @@ def update_password(request):
         except:
             return JsonResponse({
                 'status': 'fail',
-                'data': {
-                    'message': 'There was an error while updating the password'
-                }
+                'message': 'There was an error while updating the password'
             }, status=500)
 
         return JsonResponse({
@@ -129,12 +120,68 @@ def delete_account(request):
     except:
         return JsonResponse({
             'status': 'fail',
-            'data': {
-                'message': 'There was an error while deleting user account'
-            }
+            'message': 'There was an error while deleting user account'
         }, status=500)
 
     # need to delete jwt cookie on client side
     return JsonResponse({
         'status': 'success'
     })
+
+@decorator_from_middleware(JwtAuthentication)
+def search(request):
+    if request.method == 'POST':
+        return JsonResponse({
+            'status': 'fail',
+            'message': '必须是GET请求',
+        })
+
+    try:
+        username = request.GET.get('username')
+        auth_username = request.GET.get('auth_username')
+        if username is None or len(username) == 0:
+            return JsonResponse({
+                'status': 'fail',
+                'message': '未知搜索對象:username不能爲空'
+            })
+        # 搜索类型, 暂定1 为搜索用户个人主页所有信息
+        type = int(request.GET.get('type'))
+        if type is not 1:
+            return JsonResponse({
+                'status': 'fail',
+                'message': '未知搜索type, type不能爲空'
+            })
+        # 如果授权用户不存在,则抛出异常
+        auth_user = UserProfile.objects.filter(username=auth_username).first()
+        token = get_token_data(request)
+        token_username = token['username']
+        # 如果授權的用戶信息與參數中auth_username不一致,則拋出異常
+        if auth_user.username != token_username:
+            return JsonResponse({
+                'status': 'fail',
+                'message': '用戶授權信息錯誤'
+            })
+        search_user = UserProfile.objects.filter(username=username).first()
+        search_dict = search_user.to_dict()
+        # 獲取用戶發布的所有視頻
+        my_videos = VideoItem.objects.filter(user__username=username)
+        if my_videos is None:
+            my_videos = []
+        my_videos = serializer(data=my_videos)
+        search_dict['my_videos'] = my_videos
+        # 獲取用戶點贊的所有視頻
+        my_likes = Likes.objects.filter(user__username=username)
+        if my_likes is None:
+            my_likes = []
+        my_likes = serializer(data=my_likes)
+        search_dict['my_likes'] = my_likes
+        return JsonResponse({
+            'status': 'success',
+            'data': search_dict
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'fail',
+            'message': str(e)
+        }, status=500)
+

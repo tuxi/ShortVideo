@@ -25,4 +25,9 @@ user_data_routes = [
 
 ]
 
-urlpatterns = auth_routes + user_data_routes
+discover_data_routes = [
+    # 发现
+    url(r'^discover/search$', views.search, name='search'),
+]
+
+urlpatterns = auth_routes + user_data_routes + discover_data_routes

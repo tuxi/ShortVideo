@@ -57,6 +57,5 @@ class UserProfile(AbstractUser):
 
     def to_dict(self):
         # 序列化model, foreign=True,并且序列化主键对应的model, exclude_attr 列表里的字段
-        dict = serializer(data=self, foreign=False, exclude_attr=('password',))
-
+        dict = serializer(data=self, foreign=True, exclude_attr=('password', 'backend',))
         return dict
