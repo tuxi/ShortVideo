@@ -113,7 +113,14 @@ def register(request):
             }, status=500)
 
         # 跳轉向到登錄界面
-        return login(request=request, redirect_after_registration=True, redirect_user=u, registration_data={'username': username, 'email': email})
+        # return login(request=request, redirect_after_registration=True, redirect_user=u, registration_data={'username': username, 'email': email})
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'username': username,
+                'email': email
+            }
+        })
 
     # 用戶名已存在,無法完成注冊, 並告訴客戶端
     return JsonResponse({
