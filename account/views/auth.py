@@ -106,10 +106,10 @@ def register(request):
                 address=address
             )
             u.save()
-        except:
+        except Exception as e:
             return JsonResponse({
                 'status': 'fail',
-                'message': 'There was an error during registration'
+                'message': '注冊出錯:' + str(e)
             }, status=500)
 
         # 跳轉向到登錄界面

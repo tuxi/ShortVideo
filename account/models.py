@@ -19,9 +19,9 @@ class UserProfile(AbstractUser):
     birday = models.DateField(verbose_name=u"生日", null=True, blank=True)
     # 性别
     gender = models.CharField(max_length=10, choices=(("male", "男"),
-                                                      ("female", "女")), default=u"female")
+                                                      ("female", "女")), default=u"female", blank=True, null=True)
     # 地址
-    address = models.CharField(max_length=100, default="")
+    address = models.CharField(max_length=100, blank=True, null=True,default="")
     # 手机号
     phone = models.CharField(max_length=11, null=True, blank=True)
     # 用户头像
@@ -30,6 +30,8 @@ class UserProfile(AbstractUser):
                                  processors=[ResizeToFill(640,640)],
                                  format='JPEG',
                                  options={'quality':100})
+    # 用戶簡介
+    summary = models.CharField(max_length=300, blank=True, null=True, verbose_name="用戶簡介")
 
     # image = models.ImageField(upload_to=USER_AVATAR_URL,
                               # blank=True, verbose_name="用戶頭像")

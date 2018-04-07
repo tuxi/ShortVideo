@@ -1,8 +1,11 @@
 import errno
+
+from celery.fixups import django
 from django.conf import settings
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
 from django.db.models.fields.files import FileDescriptor
+from django.db.utils import DataError
 
 from datetime import datetime
 import os.path
@@ -305,9 +308,11 @@ class VideoSpecFieldFile(VideoFieldFile):
                 options = ['-c:v', 'libtheora', '-c:a', 'libvorbis', '-q:v', '10', '-q:a', '6']
             elif self.field.format == 'webm':
                 options = ['-c:v', 'libvpx', '-c:a', 'libvorbis', '-crf', '10', '-b:v', '1M']
-
-            self.name = file_name
-            self.instance.save()
+            try:
+                self.name = file_name
+                self.instance.save()
+            except DataError as e:
+                print(file_name + str(e))
 
             generate_video.delay(file_name, self.source_file.name, options = options)
 

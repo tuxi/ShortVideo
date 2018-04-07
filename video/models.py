@@ -48,8 +48,8 @@ class VideoItem(models.Model):
     video_thumbnail = models.ImageField(null=True, blank=True)
     # 视频前3秒的gif图
     video_gif = models.ImageField(null=True, blank=True)
-    video_mp4 = VideoSpecField(source = 'video', format = 'mp4')
-    video_ogg = VideoSpecField(source='video', format='ogg')
+    video_mp4 = VideoSpecField(source = 'video', format = 'mp4', max_length=500)
+    video_ogg = VideoSpecField(source='video', format='ogg', max_length=500)
     title = models.CharField('视频名称', max_length=200, unique=False)
     describe = models.TextField('描述')
     upload_time = models.DateTimeField('上传时间', default=timezone.now)
