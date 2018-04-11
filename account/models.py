@@ -33,8 +33,9 @@ class UserProfile(AbstractUser):
     # 用戶簡介
     summary = models.CharField(max_length=300, blank=True, null=True, verbose_name="用戶簡介")
 
-    # image = models.ImageField(upload_to=USER_AVATAR_URL,
-                              # blank=True, verbose_name="用戶頭像")
+    # 个人主页 cover image, 后台未做任何处理, 由前台处理cover尺寸
+    cover = models.ImageField(upload_to=USER_AVATAR_URL,
+                              blank=True, null=True, verbose_name="cover image")
 
     def save(self, *args, **kwargs):
         if len(self.avatar.name.split('/')) == 1:

@@ -38,35 +38,65 @@ def get_user_data(request):
 
 @decorator_from_middleware(JwtAuthentication)
 def update_data(request):
-    # only the email can be updated here
+    '''
+    更新用户信息, 根据用户登录时的token进行更新
+    :param request:
+    :return:
+    '''
+    if request.method != 'POST':
+        return JsonResponse({
+            'status': 'fail',
+            'message': '本接口只支持post'
+        })
     token = get_token_data(request)
     username = token['username']
+    u = UserProfile.objects.get(username=username)
+    if username is None or len(username) == 0 or u is None:
+        return JsonResponse({
+            'status': 'fail',
+            'message': '没有权限,用户未登录'
+        })
 
-    post_data = json.loads(request.body.decode('utf-8'))
-    new_email = post_data['email']
+    new_email = request.POST.get('email')
+    new_nickname = request.POST.get('nickname')
+    new_gender = request.POST.get('gender')
+    new_birday = request.POST.get('birday')
+    new_address = request.POST.get('address')
+    new_avatar = u.avatar
+    new_cover = u.cover
+    if 'avatar' in request.FILES:
+        new_avatar = request.FILES.get('avatar', None)
+    if 'cover' in request.FILES:
+        new_cover = request.FILES.get('cover', None)
 
     try:
-        validate_email(new_email)
+        if new_email is not None:
+            validate_email(new_email)
     except ValidationError as e:
         return JsonResponse({
             'status': 'fail',
             'message': str(e)
         }, status=500)
 
-    # get user object
-    u = UserProfile.objects.get(username=username)
     u.email = new_email
+    u.nickname = new_nickname
+    u.gender = new_gender
+    u.address = new_address
+    u.cover = new_cover
+    u.avatar = new_avatar
+    u.birday = new_birday
     try:
         u.save()
-    except:
+    except Exception as e:
         return JsonResponse({
             'status': 'fail',
-            'message': 'There was an error while updating user data'
+            'message': str(e)
         }, status=500)
 
     token = create_login_token({'username': u.username, 'email': u.email})
     res = JsonResponse({
-        'status': 'success'
+        'status': 'success',
+        'user': u.to_dict(),
     })
     res.set_cookie('token', value=token['token'], expires=token['exp'])
     return res
