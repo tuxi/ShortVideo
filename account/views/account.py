@@ -62,6 +62,7 @@ def update_data(request):
     new_gender = request.POST.get('gender')
     new_birday = request.POST.get('birday')
     new_address = request.POST.get('address')
+    new_summary = request.POST.get('summary')
     new_avatar = u.avatar
     new_cover = u.cover
     if 'avatar' in request.FILES:
@@ -78,13 +79,16 @@ def update_data(request):
             'message': str(e)
         }, status=500)
 
-    u.email = new_email
+    if new_email is not None:
+        # email is not none
+        u.email = new_email
     u.nickname = new_nickname
     u.gender = new_gender
     u.address = new_address
     u.cover = new_cover
     u.avatar = new_avatar
     u.birday = new_birday
+    u.summary = new_summary
     try:
         u.save()
     except Exception as e:

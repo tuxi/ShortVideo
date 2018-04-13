@@ -35,18 +35,24 @@ class UserProfile(AbstractUser):
 
     # 个人主页 cover image, 后台未做任何处理, 由前台处理cover尺寸
     cover = models.ImageField(upload_to=USER_AVATAR_URL,
-                              blank=True, null=True, verbose_name="cover image")
+                              blank=True, null=True,
+                              verbose_name="cover image")
+
+    @property
+    def cover_url(self):
+        if self.cover and hasattr(self.cover, 'url'):
+            return self.cover.url
+        return ""
+    @property
+    def avatar_url(self):
+        if self.avatar and hasattr(self.avatar, 'url'):
+            return self.avatar.url
+        return ""
 
     def save(self, *args, **kwargs):
         if len(self.avatar.name.split('/')) == 1:
             self.avatar.name = self.username + '/' + self.avatar.name
         super(UserProfile, self).save(*args, **kwargs)
-
-
-    @property
-    def avatar_url(self):
-        if self.avatar and hasattr(self.avatar, 'url'):
-            return self.avatar.url
 
     def get_uid(self):
         return self.id
@@ -60,5 +66,11 @@ class UserProfile(AbstractUser):
 
     def to_dict(self):
         # 序列化model, foreign=True,并且序列化主键对应的model, exclude_attr 列表里的字段
-        dict = serializer(data=self, foreign=True, exclude_attr=('password', 'backend',))
+        dict = serializer(data=self, foreign=True, exclude_attr=('password', 'backend', 'cover', 'avatar'))
+        cover_url = self.cover_url
+        dict["cover"] = cover_url
+        avarar_url = self.avatar_url
+        dict["avatar"] = avarar_url
+
+
         return dict
