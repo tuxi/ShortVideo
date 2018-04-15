@@ -44,6 +44,10 @@ def new_video(request):
             'message': '上傳視頻,用戶必須登錄'
         })
 
+    # 动图的类型
+    # animted_type = request.POST.get('animted_type', 'gif')
+
+
     # 获取视频数据
     title = request.POST.get('title', '')
     describe = request.POST.get('describe', '')

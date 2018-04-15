@@ -93,24 +93,54 @@ class VideoItem(models.Model):
     def get_comment_num(self):
         return len(self.comment_list())
 
+    @property
+    def video_gif_url(self):
+        if self.video_gif and hasattr(self.video_gif, 'url'):
+            return self.video_gif.url
+        return ""
+
+    @property
+    def video_mp4_url(self):
+        if self.video_mp4 and hasattr(self.video_mp4, 'url'):
+            return self.video_mp4.url
+        return ""
+
+    @property
+    def video_ogg_url(self):
+        if self.video_ogg and hasattr(self.video_ogg, 'url'):
+            return self.video_ogg.url
+        return ""
+
+    @property
+    def video_thumbnail_url(self):
+        if self.video_thumbnail and hasattr(self.video_thumbnail, 'url'):
+            return self.video_thumbnail.url
+        return ""
+
+    @property
+    def video_url(self):
+        if self.video and hasattr(self.video, 'url'):
+            return self.video.url
+        return ""
+
+    @property
+    def video_animated_webp_url(self):
+        if self.video_animated_webp and hasattr(self.video_animated_webp, 'url'):
+            return self.video_animated_webp.url
+        return ""
+
     def to_dict(self):
         # 序列化model, foreign=True,并且序列化主键对应的mode, exclude_attr 列表里的字段
-        dict = serializer(data=self, foreign=False, exclude_attr=('password',))
+        dict = serializer(data=self, foreign=False, exclude_attr=('password', 'video_thumbnai', 'video_mp4', 'video_ogg', 'video_animated_webp' , 'video', 'video_gif'))
         user = UserProfile.objects.filter(pk=self.user_id).first()
         user_dict = user.to_dict()
         dict['author'] = user_dict
-        dict['video'] = self.video.url
-        dict['video_thumbnail'] = self.video_thumbnail.url
-        dict['video_mp4'] = self.video_mp4.url
-        dict['video_ogg'] = self.video_ogg.url
-        video_animated_webp = self.video_animated_webp.url
-        if video_animated_webp is None:
-            video_animated_webp = ''
-        dict['video_animated_webp'] = video_animated_webp
-        video_gif = self.video_gif.url
-        if video_gif is None:
-            video_gif = ''
-        dict['video_gif'] = video_gif
+        dict['video'] = self.video_url()
+        dict['video_thumbnail'] = self.video_thumbnail_url()
+        dict['video_mp4'] = self.video_mp4_url()
+        dict['video_ogg'] = self.video_ogg_url()
+        dict['video_animated_webp'] = self.video_animated_webp_url()
+        dict['video_gif'] = self.video_gif_url()
 
         ############ 獲取該視頻的評級
         r = Rating.objects.filter(video=self).values('rating').aggregate(
