@@ -6,11 +6,8 @@ from django.db.models import signals
 from django.core import checks
 
 import subprocess
-
 from videokit.apps import VideokitConfig
-
 from videokit.cache import get_videokit_cache_backend
-
 from videokit.fields import VideoFieldFile
 from videokit.fields import VideoFileDescriptor
 from videokit.fields import VideoSpecFieldFile
@@ -30,6 +27,7 @@ class VideoField(models.FileField):
                     duration_field = None,
                     thumbnail_field = None,
                     gif_field = None,
+                    animated_webp_field = None,
                     **kwargs):
         self.width_field = width_field
         self.height_field = height_field
@@ -38,6 +36,7 @@ class VideoField(models.FileField):
         self.duration_field = duration_field
         self.thumbnail_field = thumbnail_field
         self.gif_field = gif_field
+        self.animated_webp_field = animated_webp_field
 
         super(VideoField, self).__init__(verbose_name, name, **kwargs)
 
@@ -94,6 +93,9 @@ class VideoField(models.FileField):
         if self.gif_field:
             kwargs['gif_field'] = self.gif_field
 
+        if self.animated_webp_field:
+            kwargs['animated_webp_field'] = self.animated_webp_field
+
         return name, path, args, kwargs
 
     def contribute_to_class(self, cls, name, **kwargs):
@@ -106,6 +108,7 @@ class VideoField(models.FileField):
             signals.post_init.connect(self.update_duration_field, sender = cls)
             signals.post_init.connect(self.update_thumbnail_field, sender = cls)
             signals.post_init.connect(self.update_gif_field, sender= cls)
+            signals.post_init.connect(self.update_animated_webp_field, sender=cls)
 
     def update_dimension_fields(self, instance, force = False, *args, **kwargs):
         has_dimension_fields = self.width_field or self.height_field
@@ -249,6 +252,28 @@ class VideoField(models.FileField):
             gif = None
         if self.gif_field:
             setattr(instance, self.gif_field, gif)
+
+    def update_animated_webp_field(self, instance, force = False, *args, **kwargs):
+        has_animated_webp_field = self.animated_webp_field
+        if not has_animated_webp_field:
+            return
+
+        file = getattr(instance, self.attname)
+
+        if not file and not force:
+            return
+
+        animated_wep_field_filled = not(self.animated_webp_field and not getattr(instance, self.animated_webp_field))
+
+        if animated_wep_field_filled and not force:
+            return
+
+        if file:
+            animated_wep = file.animated_wep
+        else:
+            animated_wep = None
+        if self.animated_webp_field:
+            setattr(instance, self.animated_webp_field, animated_wep)
 
 
     def formfield(self, **kwargs):

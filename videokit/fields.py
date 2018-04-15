@@ -133,8 +133,32 @@ def get_video_thumbnail(file):
 
     return ''
 
+# 生成webp动图
+def get_video_thumbnail_animated_webp(file):
+    path = os.path.join(settings.MEDIA_ROOT, file.name)
+    webp_name = '%s%s' % (file.name, '.animated.webp')
+    webp_path = os.path.join(settings.MEDIA_ROOT, webp_name)
+    if os.path.exists(webp_path):
+        return
+    if os.path.isfile(path):
+        try:
+            # 执行ffmpeg命令 生成动图webp
+            # ffmpeg -ss 00:00:01 -t 5 -i IMG_2021_pkutAEA.MOV -vcodec libwebp -lossless 0 -qscale 75 -preset default -loop 0 -vf scale=320:-1,fps=10 -an -vsync 0 output.webp
+            process = subprocess.Popen(
+                ['ffmpeg', '-ss', '00:00:01', '-t', '5', '-i', path, '-vcodec', 'libwebp', '-lossless', '0', '-qscale', '75', '-preset', 'default', '-loop', '0', '-vf', 'scale=320:-1,fps=10', '-an', '-vsync', '0',
+                  webp_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            if process.wait() == 0:
+                return webp_name
+        except OSError as e:
+            pass
+        finally:
+            print("---")
+    return ""
+
 # 截取视频前3秒 并转化为gif
-# ffmpeg -ss 00:00:01 -t 3 -i /storage/emulated/0/DCIM/dateme/video/yiba_v_1497949777519.mp4 -vf crop=iw:ih*2/3 -s 320x240 -r 7 /storage/emulated/0/DCIM/dateme/gif/yiba_gif_1497949820078.gif
 def get_video_thumbnail_gif(file):
     '''
     1、-ss 00：00：01表示从视频第一秒开始截取
@@ -153,6 +177,7 @@ def get_video_thumbnail_gif(file):
     if os.path.isfile(path):
         try:
             # 执行ffmpeg命令
+            # ffmpeg -ss 00:00:01 -t 3 -i input视频 -vf crop=iw:ih*2/3 -s 320x240 -r 7 output.gif
             process = subprocess.Popen(
                 ['ffmpeg', '-ss', '00:00:01', '-t', '3', '-i', path, '-vf', 'crop=iw:ih*3/3', '-s', '640x480', '-r', '7', gif_path],
                 stdout=subprocess.PIPE,
@@ -160,7 +185,7 @@ def get_video_thumbnail_gif(file):
             )
             if process.wait() == 0:
                 return gif_name
-        except OSError:
+        except OSError as e:
             pass
         finally:
             print("___")
@@ -203,6 +228,11 @@ class VideoFile(File):
 
     gif = property(_get_thumbnail_gif)
 
+    def _get_thumbnail_animated_wep(self):
+        return self._get_video_thumbnail_animated_webp()
+
+    animated_wep = property(_get_thumbnail_animated_wep)
+
     def _get_video_dimensions(self):
         if not hasattr(self, '_dimensions_cache'):
             self._dimensions_cache = get_video_dimensions(self)
@@ -239,6 +269,12 @@ class VideoFile(File):
 
         return self._thumbnail_gif_cache
 
+    def _get_video_thumbnail_animated_webp(self):
+        if not hasattr(self, '_thumbnail_animated_webp_cache'):
+            self._thumbnail_animated_webp_cache = get_video_thumbnail_animated_webp(self)
+
+        return self._thumbnail_animated_webp_cache
+
 class VideoFileDescriptor(FileDescriptor):
     def __set__(self, instance, value):
         previous_file = instance.__dict__.get(self.field.name)
@@ -251,6 +287,7 @@ class VideoFileDescriptor(FileDescriptor):
             self.field.update_duration_field(instance, force = True)
             self.field.update_thumbnail_field(instance, force = True)
             self.field.update_gif_field(instance, force=True)
+            self.field.update_animated_webp_field(instance, force=True)
 
 class VideoFieldFile(VideoFile, FieldFile):
     def delete(self, save = True):
@@ -271,6 +308,9 @@ class VideoFieldFile(VideoFile, FieldFile):
 
         if hasattr(self, '_thumbnail_gif_cache'):
             del self._thumbnail_gif_cache
+
+        if hasattr(self, '_thumbnail_animated_webp_cache'):
+            del self._thumbnail_animated_webp_cache
 
         super(VideoFieldFile, self).delete(save)
 

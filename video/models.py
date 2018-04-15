@@ -36,6 +36,7 @@ class VideoItem(models.Model):
                        mimetype_field='video_mimetype',
                        duration_field='video_duration',
                        thumbnail_field='video_thumbnail',
+                       animated_webp_field='video_animated_webp',
                        gif_field='video_gif',
                        )
     video_width = models.IntegerField(null=True, blank=True)
@@ -50,6 +51,8 @@ class VideoItem(models.Model):
     video_gif = models.ImageField(null=True, blank=True)
     video_mp4 = VideoSpecField(source = 'video', format = 'mp4', max_length=500)
     video_ogg = VideoSpecField(source='video', format='ogg', max_length=500)
+    # 视频前10秒的wep动图，和gif的功能基本相同，使用webp是为了优化客户端流量及性能
+    video_animated_webp = models.ImageField(null=True, blank=True)
     title = models.CharField('视频名称', max_length=200, unique=False)
     describe = models.TextField('描述')
     upload_time = models.DateTimeField('上传时间', default=timezone.now)
@@ -92,11 +95,18 @@ class VideoItem(models.Model):
 
     def to_dict(self):
         # 序列化model, foreign=True,并且序列化主键对应的mode, exclude_attr 列表里的字段
-        dict = serializer(data=self, foreign=True, exclude_attr=('password',))
+        dict = serializer(data=self, foreign=False, exclude_attr=('password',))
+        user = UserProfile.objects.filter(pk=self.user_id).first()
+        user_dict = user.to_dict()
+        dict['author'] = user_dict
         dict['video'] = self.video.url
         dict['video_thumbnail'] = self.video_thumbnail.url
         dict['video_mp4'] = self.video_mp4.url
         dict['video_ogg'] = self.video_ogg.url
+        video_animated_webp = self.video_animated_webp.url
+        if video_animated_webp is None:
+            video_animated_webp = ''
+        dict['video_animated_webp'] = video_animated_webp
         video_gif = self.video_gif.url
         if video_gif is None:
             video_gif = ''
@@ -143,10 +153,6 @@ class Category(models.Model):
         ordering = ['name']
         verbose_name = "分类"
         verbose_name_plural = verbose_name
-
-    # def get_absolute_url(self):
-    #     url = reverse('blog:category_detail', kwargs={'category_name': self.slug})
-    #     return url
 
     def __str__(self):
         return self.name
