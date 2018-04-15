@@ -1,6 +1,10 @@
 #### 搭建一个短视频后台
 
 ubuntu 16.0.4
+
+#### 简介
+基于ffmpeg 将客户端上传的视频生成animated webp、 gif、 thum jpg，返回给客户端相应的url，客户端展示即可
+
 #### 依赖
 - ffmpeg
 安装ffmpeg
@@ -88,3 +92,4 @@ sudo vim /etc/redis/redis.conf
 ```
 config set stop-writes-on-bgsave-error no
 ```
+
