@@ -5,6 +5,8 @@
 # @File    : videos.py
 # @Software: PyCharm
 import json
+import random
+
 from dss.Serializer import serializer
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Func
@@ -175,7 +177,13 @@ def getAll(request):
 
     # 序列化对象
     # video_list = serializers.serialize('json', video_list)
-    video_list = VideoItem.objects.all()
+    # 获取随机的视频列表
+    video_count = VideoItem.objects.count()
+    video_range = range(video_count)
+    sample = random.sample(video_range, video_count)
+    video_list = [VideoItem.objects.all()[i] for i in sample]
+
+    # video_list = VideoItem.objects.all()
     videos = VideoItem.to_dict_list(video_list)
     if videos == None:
         videos = []

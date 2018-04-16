@@ -135,12 +135,12 @@ class VideoItem(models.Model):
         user = UserProfile.objects.filter(pk=self.user_id).first()
         user_dict = user.to_dict()
         dict['author'] = user_dict
-        dict['video'] = self.video_url()
-        dict['video_thumbnail'] = self.video_thumbnail_url()
-        dict['video_mp4'] = self.video_mp4_url()
-        dict['video_ogg'] = self.video_ogg_url()
-        dict['video_animated_webp'] = self.video_animated_webp_url()
-        dict['video_gif'] = self.video_gif_url()
+        dict['video'] = self.video_url
+        dict['video_thumbnail'] = self.video_thumbnail_url
+        dict['video_mp4'] = self.video_mp4_url
+        dict['video_ogg'] = self.video_ogg_url
+        dict['video_animated_webp'] = self.video_animated_webp_url
+        dict['video_gif'] = self.video_gif_url
 
         ############ 獲取該視頻的評級
         r = Rating.objects.filter(video=self).values('rating').aggregate(
