@@ -11,8 +11,8 @@ from datetime import datetime
 import os.path
 import subprocess
 
-from videokit.apps import VideokitConfig
-from videokit.tasks import generate_video
+# from videokit.apps import VideokitConfig
+# from videokit.tasks import generate_video
 
 def get_video_dimensions(file):
     path = os.path.join(settings.MEDIA_ROOT, file.name)
@@ -191,6 +191,55 @@ def get_video_thumbnail_gif(file):
             print("___")
     return ''
 
+# 提取音頻文集aac
+def get_video_aac(file):
+
+    path = os.path.join(settings.MEDIA_ROOT, file.name)
+    aac_name = '%s%s' % (file.name, '.aac')
+    aac_path = os.path.join(settings.MEDIA_ROOT, aac_name)
+    if os.path.exists(aac_path):
+        return
+    if os.path.isfile(path):
+        try:
+            # 执行ffmpeg命令
+            # ffmpeg -i 3.mp4 -vn -y -acodec copy 3.aac
+            process = subprocess.Popen(
+                ['ffmpeg', '-i', path, '-vn', '-y', '-acodec', 'copy',  aac_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            if process.wait() == 0:
+                return aac_path
+        except OSError as e:
+            print(str(e))
+
+    return ''
+
+
+# 轉換爲mp4
+def get_video_mp4(file):
+    path = os.path.join(settings.MEDIA_ROOT, file.name)
+    mp4_name = '%s%s' % (file.name, '.mp4')
+    mp4_path = os.path.join(settings.MEDIA_ROOT, mp4_name)
+    if os.path.exists(mp4_path):
+        return
+    if os.path.isfile(path):
+        try:
+            # 执行ffmpeg命令
+            # ['-c:v', 'libtheora', '-c:a', 'libvorbis', '-q:v', '10', '-q:a', '6]
+            # FFMPEG  -i  uploadfile/video/test.wmv -c:v libx264 -strict -2 uploadfile/mp4/test.mp4
+            process = subprocess.Popen(
+                ['ffmpeg', '-i', path, '-c:v', 'libx264', '-strict', '-2', mp4_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            if process.wait() == 0:
+                return mp4_path
+        except OSError as e:
+            pass
+
+    return ''
+
 
 class VideoFile(File):
     def _get_width(self):
@@ -232,6 +281,16 @@ class VideoFile(File):
         return self._get_video_thumbnail_animated_webp()
 
     animated_wep = property(_get_thumbnail_animated_wep)
+
+    def _get_mp4(self):
+        return self._get_video_mp4()
+
+    mp4 = property(_get_mp4)
+
+    def _get_aac(self):
+        return self._get_video_aac()
+
+    aac = property(_get_aac)
 
     def _get_video_dimensions(self):
         if not hasattr(self, '_dimensions_cache'):
@@ -275,6 +334,18 @@ class VideoFile(File):
 
         return self._thumbnail_animated_webp_cache
 
+    def _get_video_mp4(self):
+        if not hasattr(self, '_mp4_cache'):
+            self._mp4_cache = get_video_mp4(self)
+
+        return self._mp4_cache
+
+    def _get_video_aac(self):
+        if not hasattr(self, '_aac_cache'):
+            self._aac_cache = get_video_aac(self)
+
+        return self._aac_cache
+
 class VideoFileDescriptor(FileDescriptor):
     def __set__(self, instance, value):
         previous_file = instance.__dict__.get(self.field.name)
@@ -288,6 +359,8 @@ class VideoFileDescriptor(FileDescriptor):
             self.field.update_thumbnail_field(instance, force = True)
             self.field.update_gif_field(instance, force=True)
             self.field.update_animated_webp_field(instance, force=True)
+            self.field.update_mp4_field(instance, force=True)
+            self.field.update_aac_field(instance, force=True)
 
 class VideoFieldFile(VideoFile, FieldFile):
     def delete(self, save = True):
@@ -312,100 +385,106 @@ class VideoFieldFile(VideoFile, FieldFile):
         if hasattr(self, '_thumbnail_animated_webp_cache'):
             del self._thumbnail_animated_webp_cache
 
+        if hasattr(self, '_mp4_cache'):
+            del self._mp4_cache
+
+        if hasattr(self, '_aac_cache'):
+            del self._aac_cache
+
         super(VideoFieldFile, self).delete(save)
 
 
-class VideoSpecFieldFile(VideoFieldFile):
-    def _require_file(self):
-        if not self.source_file:
-            raise ValueError('The \'%s\' attribute\'s source has no file associated with it.' % self.field_name)
-        else:
-            self.validate()
-
-    def delete(self, save = True):
-        if hasattr(self, '_generated_cache'):
-            del self._generated_cache
-
-        super(VideoSpecFieldFile, self).delete(save)
-
-    def validate(self):
-        return self.field.video_cache_backend.validate(self)
-
-    def invalidate(self):
-        return self.field.video_cache_backend.invalidate(self)
-
-    def clear(self):
-        return self.field.video_cache_backend.clear(self)
-
-    def generate(self):
-         if not self.generating() and not self.generated():
-            file_name = self.generate_file_name()
-
-            options = []
-            if self.field.format == 'mp4':
-                options = ['-c:v', 'libx264', '-c:a', 'libfdk_aac', '-b:v', '1M', '-b:a', '128k']
-            elif self.field.format == 'ogg':
-                options = ['-c:v', 'libtheora', '-c:a', 'libvorbis', '-q:v', '10', '-q:a', '6']
-            elif self.field.format == 'webm':
-                options = ['-c:v', 'libvpx', '-c:a', 'libvorbis', '-crf', '10', '-b:v', '1M']
-            try:
-                self.name = file_name
-                self.instance.save()
-            except DataError as e:
-                print(file_name + str(e))
-
-            generate_video.delay(file_name, self.source_file.name, options = options)
-
-    def generating(self):
-        if self.name:
-            base = getattr(settings, 'BASE_DIR', '')
-            temp_file_dir = os.path.join(base, getattr(settings, 'VIDEOKIT_TEMP_DIR', VideokitConfig.VIDEOKIT_TEMP_DIR))
-            if not os.path.exists(temp_file_dir):
-                try:
-                    os.makedirs(temp_file_dir)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise
-            temp_file = os.path.join(temp_file_dir, os.path.basename(self.name))
-
-            if os.path.exists(temp_file):
-                return True
-
-        return False
-
-    def generate_file_name(self):
-        cachefile_dir = getattr(settings, 'VIDEOKIT_CACHEFILE_DIR', VideokitConfig.VIDEOKIT_CACHEFILE_DIR)
-        dir = os.path.join(cachefile_dir, os.path.splitext(self.source_file.name)[0])
-        file_string = '%s%s%s' % (self.source_file.name, self.field.format, str(datetime.now()))
-        try:
-            import md5
-            hash = md5.new(file_string).hexdigest()
-        except ImportError:
-            from hashlib import md5
-            hash = md5(file_string.encode()).hexdigest()
-
-        file_name = hash + '.' + self.field.format
-
-        return os.path.join(dir, file_name)
-
-    def generated(self):
-        if hasattr(self, '_generated_cache'):
-            return self._generated_cache
-        else:
-            if self.name:
-                if self.storage.exists(self.name):
-                    self._generated_cache = True
-                    return True
-
-        return False
-
-    @property
-    def source_file(self):
-        source_field_name = getattr(self.field, 'source', None)
-        if source_field_name:
-            return getattr(self.instance, source_field_name)
-        else:
-            return None
+# class VideoSpecFieldFile(VideoFieldFile):
+#     def _require_file(self):
+#         if not self.source_file:
+#             raise ValueError('The \'%s\' attribute\'s source has no file associated with it.' % self.field_name)
+#         else:
+#             self.validate()
+#
+#     def delete(self, save = True):
+#         if hasattr(self, '_generated_cache'):
+#             del self._generated_cache
+#
+#         super(VideoSpecFieldFile, self).delete(save)
+#
+#     def validate(self):
+#         return self.field.video_cache_backend.validate(self)
+#
+#     def invalidate(self):
+#         return self.field.video_cache_backend.invalidate(self)
+#
+#     def clear(self):
+#         return self.field.video_cache_backend.clear(self)
+#
+#     def generate(self):
+#          if not self.generating() and not self.generated():
+#             file_name = self.generate_file_name()
+#
+#             options = []
+#             if self.field.format == 'mp4':
+#                 options = ['-c:v', 'libx264', '-c:a', 'libfdk_aac', '-b:v', '1M', '-b:a', '128k']
+#             elif self.field.format == 'ogg':
+#                 options = ['-c:v', 'libtheora', '-c:a', 'libvorbis', '-q:v', '10', '-q:a', '6'] # ffmpeg -i 1.mp4  -acodec  libvorbis 1.ogg
+#             elif self.field.format == 'webm':
+#                 options = ['-c:v', 'libvpx', '-c:a', 'libvorbis', '-crf', '10', '-b:v', '1M']
+#             try:
+#                 self.name = file_name
+#                 self.instance.save()
+#             except DataError as e:
+#                 print(file_name + str(e))
+#
+#             generate_video.delay(file_name, self.source_file.name, options = options)
+#
+#     def generating(self):
+#         if self.name:
+#             base = getattr(settings, 'BASE_DIR', '')
+#             temp_file_dir = os.path.join(base, getattr(settings, 'VIDEOKIT_TEMP_DIR', VideokitConfig.VIDEOKIT_TEMP_DIR))
+#             if not os.path.exists(temp_file_dir):
+#                 try:
+#                     os.makedirs(temp_file_dir)
+#                 except OSError as e:
+#                     if e.errno != errno.EEXIST:
+#                         raise
+#             temp_file = os.path.join(temp_file_dir, os.path.basename(self.name))
+#
+#             if os.path.exists(temp_file):
+#                 return True
+#
+#         return False
+#
+#     def generate_file_name(self):
+#         cachefile_dir = getattr(settings, 'VIDEOKIT_CACHEFILE_DIR', VideokitConfig.VIDEOKIT_CACHEFILE_DIR)
+#         dir = os.path.join(cachefile_dir, os.path.splitext(self.source_file.name)[0])
+#         file_string = '%s%s%s' % (self.source_file.name, self.field.format, str(datetime.now()))
+#         try:
+#             import md5
+#             hash = md5.new(file_string).hexdigest()
+#         except ImportError:
+#             from hashlib import md5
+#             hash = md5(file_string.encode()).hexdigest()
+#
+#         file_name = hash + '.' + self.field.format
+#
+#         return os.path.join(dir, file_name)
+#
+#     def generated(self):
+#         if hasattr(self, '_generated_cache'):
+#             return self._generated_cache
+#         else:
+#             if self.name:
+#                 if self.storage.exists(self.name):
+#                     self._generated_cache = True
+#                     return True
+#
+#         return False
+#
+#     @property
+#     def source_file(self):
+#         source_field_name = getattr(self.field, 'source', None)
+#         if source_field_name:
+#             return getattr(self.instance, source_field_name)
+#         else:
+#             return None
 
 class VideoSpecFileDescriptor(VideoFileDescriptor):
     pass

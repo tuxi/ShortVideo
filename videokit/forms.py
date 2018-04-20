@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 class VideoField(forms.FileField):
     content_types = [ 'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv' ]
-    max_file_size = 429916160
+    max_file_size = 129916160
 
     def clean(self, *args, **kwargs):
         data = super(VideoField, self).clean(*args, **kwargs)

@@ -3,7 +3,9 @@
 ubuntu 16.0.4
 
 #### 简介
-基于ffmpeg 将客户端上传的视频生成animated webp、 gif、 thum jpg，返回给客户端相应的url，客户端展示即可
+> 基于ffmpeg 和mediainfo，ffmpeg将视频生成animated webp、 gif、 thum jpg，
+ mediainfo獲取視頻的詳細信息，
+ 最終以json返回给客户端
 
 #### 依赖
 - ffmpeg

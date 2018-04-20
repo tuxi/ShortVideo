@@ -1,19 +1,14 @@
 from __future__ import unicode_literals
 
-from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import signals
 from django.core import checks
 
 import subprocess
-from videokit.apps import VideokitConfig
-from videokit.cache import get_videokit_cache_backend
 from videokit.fields import VideoFieldFile
 from videokit.fields import VideoFileDescriptor
-from videokit.fields import VideoSpecFieldFile
-from videokit.fields import VideoSpecFileDescriptor
-
 from videokit.forms import VideoField as VideoFormField
+
 
 class VideoField(models.FileField):
     attr_class = VideoFieldFile
@@ -28,6 +23,8 @@ class VideoField(models.FileField):
                     thumbnail_field = None,
                     gif_field = None,
                     animated_webp_field = None,
+                    mp4_field = None,
+                    aac_field = None,
                     **kwargs):
         self.width_field = width_field
         self.height_field = height_field
@@ -37,7 +34,8 @@ class VideoField(models.FileField):
         self.thumbnail_field = thumbnail_field
         self.gif_field = gif_field
         self.animated_webp_field = animated_webp_field
-
+        self.mp4_field = mp4_field
+        self.aac_field = aac_field
         super(VideoField, self).__init__(verbose_name, name, **kwargs)
 
     def check(self, **kwargs):
@@ -96,6 +94,12 @@ class VideoField(models.FileField):
         if self.animated_webp_field:
             kwargs['animated_webp_field'] = self.animated_webp_field
 
+        if self.mp4_field:
+            kwargs['mp4_field'] = self.mp4_field
+
+        if self.aac_field:
+            kwargs['aac_field'] = self.aac_field
+
         return name, path, args, kwargs
 
     def contribute_to_class(self, cls, name, **kwargs):
@@ -109,6 +113,9 @@ class VideoField(models.FileField):
             signals.post_init.connect(self.update_thumbnail_field, sender = cls)
             signals.post_init.connect(self.update_gif_field, sender= cls)
             signals.post_init.connect(self.update_animated_webp_field, sender=cls)
+
+            signals.post_init.connect(self.update_mp4_field, sender=cls)
+            signals.post_init.connect(self.update_aac_field, sender=cls)
 
     def update_dimension_fields(self, instance, force = False, *args, **kwargs):
         has_dimension_fields = self.width_field or self.height_field
@@ -275,6 +282,50 @@ class VideoField(models.FileField):
         if self.animated_webp_field:
             setattr(instance, self.animated_webp_field, animated_wep)
 
+    def update_mp4_field(self, instance, force = False, *args, **kwargs):
+        has_mp4_field = self.mp4_field
+        if not has_mp4_field:
+            return
+
+        file = getattr(instance, self.attname)
+
+        if not file and not force:
+            return
+
+        mp4_field_filled = not(self.mp4_field and not getattr(instance, self.mp4_field))
+
+        if mp4_field_filled and not force:
+            return
+
+        if file:
+            mp4 = file.mp4
+        else:
+            mp4 = None
+        if self.mp4_field:
+            setattr(instance, self.mp4_field, mp4)
+
+    def update_aac_field(self, instance, force=False, *args, **kwargs):
+        has_aac_field = self.aac_field
+        if not has_aac_field:
+            return
+
+        file = getattr(instance, self.attname)
+
+        if not file and not force:
+            return
+
+        aac_field_filled = not (self.aac_field and not getattr(instance, self.aac_field))
+
+        if aac_field_filled and not force:
+            return
+
+        if file:
+            aac = file.aac
+        else:
+            aac = None
+        if self.mp4_field:
+            setattr(instance, self.aac_field, aac)
+
 
     def formfield(self, **kwargs):
         defaults = { 'form_class' : VideoFormField }
@@ -282,28 +333,28 @@ class VideoField(models.FileField):
         return super(VideoField, self).formfield(**defaults)
 
 
-class VideoSpecField(VideoField):
-    attr_class = VideoSpecFieldFile
-    descriptor_class = VideoSpecFileDescriptor
-
-    def __init__(   self, verbose_name = None, name = None,
-                    source = None,
-                    format = VideokitConfig.VIDEOKIT_DEFAULT_FORMAT,
-                    storage = None,
-                    video_cache_backend = None,
-                    **kwargs):
-        self.source = source
-        self.format = format
-        self.storage = storage or default_storage
-        self.video_cache_backend = video_cache_backend or get_videokit_cache_backend()
-
-        kwargs.pop('blank', None)
-        kwargs.pop('null', None)
-
-        if not format in VideokitConfig.VIDEOKIT_SUPPORTED_FORMATS:
-            raise ValueError('Video format \'%s\' is not supported at this time by videokit.' % format)
-
-        super(VideoSpecField, self).__init__(verbose_name, name, blank = True, null = True, **kwargs)
-
-    def form_field(self, **kwargs):
-        return None
+# class VideoSpecField(VideoField):
+#     attr_class = VideoSpecFieldFile
+#     descriptor_class = VideoSpecFileDescriptor
+#
+#     def __init__(   self, verbose_name = None, name = None,
+#                     source = None,
+#                     format = VideokitConfig.VIDEOKIT_DEFAULT_FORMAT,
+#                     storage = None,
+#                     # video_cache_backend = None,
+#                     **kwargs):
+#         self.source = source
+#         self.format = format
+#         self.storage = storage or default_storage
+#         # self.video_cache_backend = video_cache_backend or get_videokit_cache_backend()
+#
+#         kwargs.pop('blank', None)
+#         kwargs.pop('null', None)
+#
+#         if not format in VideokitConfig.VIDEOKIT_SUPPORTED_FORMATS:
+#             raise ValueError('Video format \'%s\' is not supported at this time by videokit.' % format)
+#
+#         super(VideoSpecField, self).__init__(verbose_name, name, blank = True, null = True, **kwargs)
+#
+#     def form_field(self, **kwargs):
+#         return None

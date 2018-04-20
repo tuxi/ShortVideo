@@ -11,14 +11,30 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
 from django.db.models import Avg, Count, Func
-from ShortVideo import settings
-from videokit.models import VideoField, VideoSpecField
+from ShortVideo.settings import BASE_DIR
+from videokit.models import VideoField
 from django.core.validators import MinLengthValidator
 from dss.Serializer import serializer
 import json
 
 def upload_to(instance, filename):
     return 'media_items{filename}'.format(filename=filename)
+
+class SoundItem(models.FileField):
+    # title = models.CharField(max_length=30, null=True, blank=True)
+    upload_time = models.DateTimeField('上傳时间', auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "原聲"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.name
+
+    def to_dict(self):
+        dict = serializer(data=self, foreign=True)
+        return dict
 
 class VideoItem(models.Model):
     """媒体文件"""
@@ -38,6 +54,8 @@ class VideoItem(models.Model):
                        thumbnail_field='video_thumbnail',
                        animated_webp_field='video_animated_webp',
                        gif_field='video_gif',
+                       mp4_field='video_mp4',
+                       aac_field='video_sound',
                        )
     video_width = models.IntegerField(null=True, blank=True)
     video_height = models.IntegerField(null=True, blank=True)
@@ -49,8 +67,8 @@ class VideoItem(models.Model):
     video_thumbnail = models.ImageField(null=True, blank=True)
     # 视频前3秒的gif图
     video_gif = models.ImageField(null=True, blank=True)
-    video_mp4 = VideoSpecField(source = 'video', format = 'mp4', max_length=500)
-    video_ogg = VideoSpecField(source='video', format='ogg', max_length=500)
+    video_mp4 = models.FileField(blank=True, verbose_name='mp4', null=True)
+    video_sound = SoundItem(blank=True, verbose_name='sound', null=True)
     # 视频前10秒的wep动图，和gif的功能基本相同，使用webp是为了优化客户端流量及性能
     video_animated_webp = models.ImageField(null=True, blank=True)
     title = models.CharField('视频名称', max_length=200, unique=False)
@@ -62,6 +80,7 @@ class VideoItem(models.Model):
     category = models.ForeignKey('Category', verbose_name='分类', on_delete=models.CASCADE, blank=True, null=True)
     comment_status = models.CharField('评论状态', max_length=1, choices=COMMENT_STATUS, default='o')
     status = models.CharField('视频状态', max_length=1, choices=STATUS_CHOICES, default='p')
+
     def __str__(self):
         return self.title + self.describe
 
@@ -71,10 +90,6 @@ class VideoItem(models.Model):
         verbose_name_plural = verbose_name
         get_latest_by = 'upload_time'
 
-    def video_spects_generated(self):
-        if self.video_mp4.generated() and self.video_ogg.generated():
-            return True
-        return False
 
     # def get_absolute_url(self):
     #     return reverse('video:detail', kwargs={
@@ -102,13 +117,19 @@ class VideoItem(models.Model):
     @property
     def video_mp4_url(self):
         if self.video_mp4 and hasattr(self.video_mp4, 'url'):
-            return self.video_mp4.url
+            url = self.video_mp4.url
+            if BASE_DIR in url:
+                url = url.split(BASE_DIR)[1]
+                return url
         return ""
 
     @property
-    def video_ogg_url(self):
-        if self.video_ogg and hasattr(self.video_ogg, 'url'):
-            return self.video_ogg.url
+    def video_sound_url(self):
+        if self.video_sound and hasattr(self.video_sound, 'url'):
+            url = self.video_sound.url
+            if BASE_DIR in url:
+                url = url.split(BASE_DIR)[1]
+                return url
         return ""
 
     @property
@@ -131,14 +152,14 @@ class VideoItem(models.Model):
 
     def to_dict(self):
         # 序列化model, foreign=True,并且序列化主键对应的mode, exclude_attr 列表里的字段
-        dict = serializer(data=self, foreign=False, exclude_attr=('password', 'video_thumbnai', 'video_mp4', 'video_ogg', 'video_animated_webp' , 'video', 'video_gif'))
+        dict = serializer(data=self, foreign=False, exclude_attr=('password', 'video_thumbnai', 'video_mp4', 'video_sound', 'video_animated_webp' , 'video', 'video_gif'))
         user = UserProfile.objects.filter(pk=self.user_id).first()
         user_dict = user.to_dict()
         dict['author'] = user_dict
         dict['video'] = self.video_url
         dict['video_thumbnail'] = self.video_thumbnail_url
         dict['video_mp4'] = self.video_mp4_url
-        dict['video_ogg'] = self.video_ogg_url
+        dict['video_sound'] = self.video_sound_url
         dict['video_animated_webp'] = self.video_animated_webp_url
         dict['video_gif'] = self.video_gif_url
 

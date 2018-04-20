@@ -4,7 +4,6 @@
 # @Email   : xiaoyuan1314@me.com
 # @File    : test.py
 # @Software: PyCharm
-import json
 
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
@@ -38,9 +37,6 @@ def test_upload(request):
             if video:
                 media_item = VideoItem(video = video)
                 media_item.save()
-
-                media_item.video_mp4.generate()
-                media_item.video_ogg.generate()
                 return HttpResponseRedirect(reverse('video:index'))
 
     context = {

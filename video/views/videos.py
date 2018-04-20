@@ -7,16 +7,14 @@
 import json
 import random
 
-from dss.Serializer import serializer
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Func
 
 from account.utils import get_token_data
-from ..models import VideoItem, Rating, Comment
+from ..models import VideoItem
 from account.middlewares.jwt_authentication import JwtAuthentication
 from django.utils.decorators import decorator_from_middleware
 from account.models import UserProfile
-from django.core import serializers
 
 @decorator_from_middleware(JwtAuthentication)
 def new_video(request):
@@ -60,8 +58,6 @@ def new_video(request):
         m = VideoItem(title = title, describe = describe, video = video, user_id = user_id)
         try:
             m.save()
-            m.video_mp4.generate()
-            m.video_ogg.generate()
         except Exception as e:
             return JsonResponse({
                 'status': 'fail',
