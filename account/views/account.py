@@ -201,7 +201,8 @@ def search(request):
         my_videos = VideoItem.objects.filter(user__username=username)
         if my_videos is None:
             my_videos = []
-        my_videos = serializer(data=my_videos)
+
+        my_videos = VideoItem.to_dict_list(my_videos)
         search_dict['my_videos'] = my_videos
         # 獲取用戶點贊的所有視頻
         my_likes = Likes.objects.filter(user__username=username)

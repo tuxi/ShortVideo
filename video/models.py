@@ -20,22 +20,6 @@ import json
 def upload_to(instance, filename):
     return 'media_items{filename}'.format(filename=filename)
 
-class SoundItem(models.FileField):
-    # title = models.CharField(max_length=30, null=True, blank=True)
-    upload_time = models.DateTimeField('上傳时间', auto_now_add=True)
-
-    class Meta:
-        ordering = ['name']
-        verbose_name = "原聲"
-        verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return self.name
-
-    def to_dict(self):
-        dict = serializer(data=self, foreign=True)
-        return dict
-
 class VideoItem(models.Model):
     """媒体文件"""
     STATUS_CHOICES = (
@@ -68,7 +52,8 @@ class VideoItem(models.Model):
     # 视频前3秒的gif图
     video_gif = models.ImageField(null=True, blank=True)
     video_mp4 = models.FileField(blank=True, verbose_name='mp4', null=True)
-    video_sound = SoundItem(blank=True, verbose_name='sound', null=True)
+    video_sound = models.FileField(blank=True, verbose_name='sound', null=True)
+
     # 视频前10秒的wep动图，和gif的功能基本相同，使用webp是为了优化客户端流量及性能
     video_animated_webp = models.ImageField(null=True, blank=True)
     title = models.CharField('视频名称', max_length=200, unique=False)
@@ -90,11 +75,6 @@ class VideoItem(models.Model):
         verbose_name_plural = verbose_name
         get_latest_by = 'upload_time'
 
-
-    # def get_absolute_url(self):
-    #     return reverse('video:detail', kwargs={
-    #         'article_id': self.id,
-    #     })
 
 
     def viewed(self):
