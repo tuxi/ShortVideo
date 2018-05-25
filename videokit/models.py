@@ -32,10 +32,10 @@ class VideoField(models.FileField):
         self.mimetype_field = mimetype_field
         self.duration_field = duration_field
         self.thumbnail_field = thumbnail_field
-        self.gif_field = gif_field
+        #self.gif_field = gif_field
         self.animated_webp_field = animated_webp_field
         self.mp4_field = mp4_field
-        self.aac_field = aac_field
+        #self.aac_field = aac_field
         super(VideoField, self).__init__(verbose_name, name, **kwargs)
 
     def check(self, **kwargs):
@@ -88,8 +88,8 @@ class VideoField(models.FileField):
         if self.thumbnail_field:
             kwargs['thumbnail_field'] = self.thumbnail_field
 
-        if self.gif_field:
-            kwargs['gif_field'] = self.gif_field
+        #if self.gif_field:
+        #    kwargs['gif_field'] = self.gif_field
 
         if self.animated_webp_field:
             kwargs['animated_webp_field'] = self.animated_webp_field
@@ -97,8 +97,10 @@ class VideoField(models.FileField):
         if self.mp4_field:
             kwargs['mp4_field'] = self.mp4_field
 
-        if self.aac_field:
-            kwargs['aac_field'] = self.aac_field
+        #if hasattr(self, "aac_field"):
+         #   if self.aac_field:
+          #      kwargs['aac_field'] = self.aac_field
+
 
         return name, path, args, kwargs
 
@@ -111,11 +113,11 @@ class VideoField(models.FileField):
             signals.post_init.connect(self.update_mimetype_field, sender = cls)
             signals.post_init.connect(self.update_duration_field, sender = cls)
             signals.post_init.connect(self.update_thumbnail_field, sender = cls)
-            signals.post_init.connect(self.update_gif_field, sender= cls)
+           # signals.post_init.connect(self.update_gif_field, sender= cls)
             signals.post_init.connect(self.update_animated_webp_field, sender=cls)
 
             signals.post_init.connect(self.update_mp4_field, sender=cls)
-            signals.post_init.connect(self.update_aac_field, sender=cls)
+            #signals.post_init.connect(self.update_aac_field, sender=cls)
 
     def update_dimension_fields(self, instance, force = False, *args, **kwargs):
         has_dimension_fields = self.width_field or self.height_field
@@ -237,28 +239,28 @@ class VideoField(models.FileField):
 
         if self.thumbnail_field:
             setattr(instance, self.thumbnail_field, thumbnail)
-
-    def update_gif_field(self, instance, force = False, *args, **kwargs):
-        has_gif_field = self.gif_field
-        if not has_gif_field:
-            return
-
-        file = getattr(instance, self.attname)
-
-        if not file and not force:
-            return
-
-        gif_field_filled = not(self.gif_field and not getattr(instance, self.gif_field))
-
-        if gif_field_filled and not force:
-            return
-
-        if file:
-            gif = file.gif
-        else:
-            gif = None
-        if self.gif_field:
-            setattr(instance, self.gif_field, gif)
+    #
+    # def update_gif_field(self, instance, force = False, *args, **kwargs):
+    #     has_gif_field = self.gif_field
+    #     if not has_gif_field:
+    #         return
+    #
+    #     file = getattr(instance, self.attname)
+    #
+    #     if not file and not force:
+    #         return
+    #
+    #     gif_field_filled = not(self.gif_field and not getattr(instance, self.gif_field))
+    #
+    #     if gif_field_filled and not force:
+    #         return
+    #
+    #     if file:
+    #         gif = file.gif
+    #     else:
+    #         gif = None
+    #     if self.gif_field:
+    #         setattr(instance, self.gif_field, gif)
 
     def update_animated_webp_field(self, instance, force = False, *args, **kwargs):
         has_animated_webp_field = self.animated_webp_field
@@ -304,27 +306,29 @@ class VideoField(models.FileField):
         if self.mp4_field:
             setattr(instance, self.mp4_field, mp4)
 
-    def update_aac_field(self, instance, force=False, *args, **kwargs):
-        has_aac_field = self.aac_field
-        if not has_aac_field:
-            return
+    # def update_aac_field(self, instance, force=False, *args, **kwargs):
+    #     has_aac_field = self.aac_field
+    #     if not has_aac_field:
+    #         return
+    #
+    #     file = getattr(instance, self.attname)
+    #
+    #     if not file and not force:
+    #         return
+    #
+    #     aac_field_filled = not (self.aac_field and not getattr(instance, self.aac_field))
+    #
+    #     if aac_field_filled and not force:
+    #         return
+    #
+    #     if file:
+    #         aac = file.aac
+    #     else:
+    #         aac = None
+    #     if self.mp4_field:
+    #         setattr(instance, self.aac_field, aac)
 
-        file = getattr(instance, self.attname)
 
-        if not file and not force:
-            return
-
-        aac_field_filled = not (self.aac_field and not getattr(instance, self.aac_field))
-
-        if aac_field_filled and not force:
-            return
-
-        if file:
-            aac = file.aac
-        else:
-            aac = None
-        if self.mp4_field:
-            setattr(instance, self.aac_field, aac)
 
 
     def formfield(self, **kwargs):

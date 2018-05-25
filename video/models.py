@@ -37,9 +37,9 @@ class VideoItem(models.Model):
                        duration_field='video_duration',
                        thumbnail_field='video_thumbnail',
                        animated_webp_field='video_animated_webp',
-                       gif_field='video_gif',
+                       #gif_field='video_gif',
                        mp4_field='video_mp4',
-                       aac_field='video_sound',
+                       #aac_field='video_sound',
                        )
     video_width = models.IntegerField(null=True, blank=True)
     video_height = models.IntegerField(null=True, blank=True)
@@ -50,9 +50,9 @@ class VideoItem(models.Model):
     # 视频缩略图
     video_thumbnail = models.ImageField(null=True, blank=True)
     # 视频前3秒的gif图
-    video_gif = models.ImageField(null=True, blank=True)
+    #video_gif = models.ImageField(null=True, blank=True)
     video_mp4 = models.FileField(blank=True, verbose_name='mp4', null=True)
-    video_sound = models.FileField(blank=True, verbose_name='sound', null=True)
+    #video_sound = models.FileField(blank=True, verbose_name='sound', null=True)
 
     # 视频前10秒的wep动图，和gif的功能基本相同，使用webp是为了优化客户端流量及性能
     video_animated_webp = models.ImageField(null=True, blank=True)
@@ -88,11 +88,11 @@ class VideoItem(models.Model):
     def get_comment_num(self):
         return len(self.comment_list())
 
-    @property
-    def video_gif_url(self):
-        if self.video_gif and hasattr(self.video_gif, 'url'):
-            return self.video_gif.url
-        return ""
+    # @property
+    # def video_gif_url(self):
+    #     if self.video_gif and hasattr(self.video_gif, 'url'):
+    #         return self.video_gif.url
+    #     return ""
 
     @property
     def video_mp4_url(self):
@@ -103,14 +103,14 @@ class VideoItem(models.Model):
                 return url
         return ""
 
-    @property
-    def video_sound_url(self):
-        if self.video_sound and hasattr(self.video_sound, 'url'):
-            url = self.video_sound.url
-            if BASE_DIR in url:
-                url = url.split(BASE_DIR)[1]
-                return url
-        return ""
+    # @property
+    # def video_sound_url(self):
+    #     if self.video_sound and hasattr(self.video_sound, 'url'):
+    #         url = self.video_sound.url
+    #         if BASE_DIR in url:
+    #             url = url.split(BASE_DIR)[1]
+    #             return url
+    #     return ""
 
     @property
     def video_thumbnail_url(self):
@@ -132,16 +132,16 @@ class VideoItem(models.Model):
 
     def to_dict(self):
         # 序列化model, foreign=True,并且序列化主键对应的mode, exclude_attr 列表里的字段
-        dict = serializer(data=self, foreign=False, exclude_attr=('password', 'video_thumbnai', 'video_mp4', 'video_sound', 'video_animated_webp' , 'video', 'video_gif'))
+        dict = serializer(data=self, foreign=False, exclude_attr=('password', 'video_thumbnai', 'video_mp4', 'video_animated_webp' , 'video'))
         user = UserProfile.objects.filter(pk=self.user_id).first()
         user_dict = user.to_dict()
         dict['author'] = user_dict
         dict['video'] = self.video_url
         dict['video_thumbnail'] = self.video_thumbnail_url
         dict['video_mp4'] = self.video_mp4_url
-        dict['video_sound'] = self.video_sound_url
+        #dict['video_sound'] = self.video_sound_url
         dict['video_animated_webp'] = self.video_animated_webp_url
-        dict['video_gif'] = self.video_gif_url
+        #dict['video_gif'] = self.video_gif_url
 
         ############ 獲取該視頻的評級
         r = Rating.objects.filter(video=self).values('rating').aggregate(

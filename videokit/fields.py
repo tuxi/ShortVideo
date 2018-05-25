@@ -157,63 +157,63 @@ def get_video_thumbnail_animated_webp(file):
         finally:
             print("---")
     return ""
-
-# 截取视频前3秒 并转化为gif
-def get_video_thumbnail_gif(file):
-    '''
-    1、-ss 00：00：01表示从视频第一秒开始截取
-    2、- t 表示截图3秒钟的视频
-    3、-vf crop=iw:ih*2/3 表示截取视频的部分区域，其中宽为视频宽度，高为原视频的2/3
-    4、-r 7 表示每秒帧率为7帧
-    5、最后直接加上要生成的gif的路径就会把截取好的视频输出为gif了。
-    :param file: 视频文件
-    :return:
-    '''
-    path = os.path.join(settings.MEDIA_ROOT, file.name)
-    gif_name = '%s%s' % (file.name, '.thumb.gif')
-    gif_path = os.path.join(settings.MEDIA_ROOT, gif_name)
-    if os.path.exists(gif_path):
-        return
-    if os.path.isfile(path):
-        try:
-            # 执行ffmpeg命令
-            # ffmpeg -ss 00:00:01 -t 3 -i input视频 -vf crop=iw:ih*2/3 -s 320x240 -r 7 output.gif
-            process = subprocess.Popen(
-                ['ffmpeg', '-ss', '00:00:01', '-t', '3', '-i', path, '-vf', 'crop=iw:ih*3/3', '-s', '640x480', '-r', '7', gif_path],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            if process.wait() == 0:
-                return gif_name
-        except OSError as e:
-            pass
-        finally:
-            print("___")
-    return ''
+#
+# # 截取视频前3秒 并转化为gif
+# def get_video_thumbnail_gif(file):
+#     '''
+#     1、-ss 00：00：01表示从视频第一秒开始截取
+#     2、- t 表示截图3秒钟的视频
+#     3、-vf crop=iw:ih*2/3 表示截取视频的部分区域，其中宽为视频宽度，高为原视频的2/3
+#     4、-r 7 表示每秒帧率为7帧
+#     5、最后直接加上要生成的gif的路径就会把截取好的视频输出为gif了。
+#     :param file: 视频文件
+#     :return:
+#     '''
+#     path = os.path.join(settings.MEDIA_ROOT, file.name)
+#     gif_name = '%s%s' % (file.name, '.thumb.gif')
+#     gif_path = os.path.join(settings.MEDIA_ROOT, gif_name)
+#     if os.path.exists(gif_path):
+#         return
+#     if os.path.isfile(path):
+#         try:
+#             # 执行ffmpeg命令
+#             # ffmpeg -ss 00:00:01 -t 3 -i input视频 -vf crop=iw:ih*2/3 -s 320x240 -r 7 output.gif
+#             process = subprocess.Popen(
+#                 ['ffmpeg', '-ss', '00:00:01', '-t', '3', '-i', path, '-vf', 'crop=iw:ih*3/3', '-s', '640x480', '-r', '7', gif_path],
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE
+#             )
+#             if process.wait() == 0:
+#                 return gif_name
+#         except OSError as e:
+#             pass
+#         finally:
+#             print("___")
+#     return ''
 
 # 提取音頻文集aac
-def get_video_aac(file):
-
-    path = os.path.join(settings.MEDIA_ROOT, file.name)
-    aac_name = '%s%s' % (file.name, '.aac')
-    aac_path = os.path.join(settings.MEDIA_ROOT, aac_name)
-    if os.path.exists(aac_path):
-        return
-    if os.path.isfile(path):
-        try:
-            # 执行ffmpeg命令
-            # ffmpeg -i 3.mp4 -vn -y -acodec copy 3.aac
-            process = subprocess.Popen(
-                ['ffmpeg', '-i', path, '-vn', '-y', '-acodec', 'copy',  aac_path],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            if process.wait() == 0:
-                return aac_path
-        except OSError as e:
-            print(str(e))
-
-    return ''
+# def get_video_aac(file):
+#
+#     path = os.path.join(settings.MEDIA_ROOT, file.name)
+#     aac_name = '%s%s' % (file.name, '.aac')
+#     aac_path = os.path.join(settings.MEDIA_ROOT, aac_name)
+#     if os.path.exists(aac_path):
+#         return
+#     if os.path.isfile(path):
+#         try:
+#             # 执行ffmpeg命令
+#             # ffmpeg -i 3.mp4 -vn -y -acodec copy 3.aac
+#             process = subprocess.Popen(
+#                 ['ffmpeg', '-i', path, '-vn', '-y', '-acodec', 'copy',  aac_path],
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE
+#             )
+#             if process.wait() == 0:
+#                 return aac_path
+#         except OSError as e:
+#             print(str(e))
+#
+#     return ''
 
 
 # 轉換爲mp4
@@ -272,10 +272,10 @@ class VideoFile(File):
 
     thumbnail = property(_get_thumbnail)
 
-    def _get_thumbnail_gif(self):
-        return self._get_video_thumbnail_gif()
-
-    gif = property(_get_thumbnail_gif)
+    # def _get_thumbnail_gif(self):
+    #     return self._get_video_thumbnail_gif()
+    #
+    # gif = property(_get_thumbnail_gif)
 
     def _get_thumbnail_animated_wep(self):
         return self._get_video_thumbnail_animated_webp()
@@ -287,10 +287,10 @@ class VideoFile(File):
 
     mp4 = property(_get_mp4)
 
-    def _get_aac(self):
-        return self._get_video_aac()
-
-    aac = property(_get_aac)
+    # def _get_aac(self):
+    #     return self._get_video_aac()
+    #
+    # aac = property(_get_aac)
 
     def _get_video_dimensions(self):
         if not hasattr(self, '_dimensions_cache'):
@@ -322,11 +322,11 @@ class VideoFile(File):
 
         return self._thumbnail_cache
 
-    def _get_video_thumbnail_gif(self):
-        if not hasattr(self, '_thumbnail_gif_cache'):
-            self._thumbnail_gif_cache = get_video_thumbnail_gif(self)
-
-        return self._thumbnail_gif_cache
+    # def _get_video_thumbnail_gif(self):
+    #     if not hasattr(self, '_thumbnail_gif_cache'):
+    #         self._thumbnail_gif_cache = get_video_thumbnail_gif(self)
+    #
+    #     return self._thumbnail_gif_cache
 
     def _get_video_thumbnail_animated_webp(self):
         if not hasattr(self, '_thumbnail_animated_webp_cache'):
@@ -340,11 +340,11 @@ class VideoFile(File):
 
         return self._mp4_cache
 
-    def _get_video_aac(self):
-        if not hasattr(self, '_aac_cache'):
-            self._aac_cache = get_video_aac(self)
-
-        return self._aac_cache
+    # def _get_video_aac(self):
+    #     if not hasattr(self, '_aac_cache'):
+    #         self._aac_cache = get_video_aac(self)
+    #
+    #     return self._aac_cache
 
 class VideoFileDescriptor(FileDescriptor):
     def __set__(self, instance, value):
@@ -357,10 +357,10 @@ class VideoFileDescriptor(FileDescriptor):
             self.field.update_mimetype_field(instance, force = True)
             self.field.update_duration_field(instance, force = True)
             self.field.update_thumbnail_field(instance, force = True)
-            self.field.update_gif_field(instance, force=True)
+            # self.field.update_gif_field(instance, force=True)
             self.field.update_animated_webp_field(instance, force=True)
             self.field.update_mp4_field(instance, force=True)
-            self.field.update_aac_field(instance, force=True)
+            # self.field.update_aac_field(instance, force=True)
 
 class VideoFieldFile(VideoFile, FieldFile):
     def delete(self, save = True):
@@ -379,8 +379,8 @@ class VideoFieldFile(VideoFile, FieldFile):
         if hasattr(self, '_thumbnail_cache'):
             del self._thumbnail_cache
 
-        if hasattr(self, '_thumbnail_gif_cache'):
-            del self._thumbnail_gif_cache
+        # if hasattr(self, '_thumbnail_gif_cache'):
+        #     del self._thumbnail_gif_cache
 
         if hasattr(self, '_thumbnail_animated_webp_cache'):
             del self._thumbnail_animated_webp_cache
@@ -388,8 +388,8 @@ class VideoFieldFile(VideoFile, FieldFile):
         if hasattr(self, '_mp4_cache'):
             del self._mp4_cache
 
-        if hasattr(self, '_aac_cache'):
-            del self._aac_cache
+        # if hasattr(self, '_aac_cache'):
+        #     del self._aac_cache
 
         super(VideoFieldFile, self).delete(save)
 
