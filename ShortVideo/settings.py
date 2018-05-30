@@ -85,6 +85,7 @@ DATABASES = {
         'PASSWORD': 'root',  # 数据库密码
         'HOST': '127.0.0.1', # 数据库主机，留空默认为localhost
         'PORT': 3306, # 数据库端口
+        'OPTIONS': {'charset': 'utf8mb4'},
     }
 }
 
