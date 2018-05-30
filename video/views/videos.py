@@ -7,6 +7,7 @@
 import json
 import random
 
+from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Func
 
@@ -15,6 +16,10 @@ from ..models import VideoItem
 from account.middlewares.jwt_authentication import JwtAuthentication
 from django.utils.decorators import decorator_from_middleware
 from account.models import UserProfile
+from ShortVideo.settings import PAGINATE_BY
+import os
+
+
 
 @decorator_from_middleware(JwtAuthentication)
 def new_video(request):
@@ -53,6 +58,22 @@ def new_video(request):
     describe = request.POST.get('describe', '')
     # save
     video = request.FILES.get('video', None)
+    if len(video.name) > 20:
+        # 解决上传的文件名太长问题
+        nameExtension = os.path.splitext(video.name)[1]
+        try:
+            import md5
+            hash = md5.new(video.name).hexdigest()
+        except ImportError as e:
+            from hashlib import md5
+            hash = md5(video.name.encode()).hexdigest()
+
+        # startswith中拥有多个参数必须是元组形式，只需满足一个条件，返回True
+        if nameExtension.startswith((".",)):
+            file_name = hash + nameExtension
+        else:
+            file_name = hash + '.' + nameExtension
+        video.name = file_name
 
     if video:
         m = VideoItem(title = title, describe = describe, video = video, user_id = user_id)
@@ -181,6 +202,44 @@ def getAll(request):
 
     # video_list = VideoItem.objects.all()
     videos = VideoItem.to_dict_list(video_list)
+    if videos == None:
+        videos = []
+    return JsonResponse({
+        'status': 'success',
+        'data': {
+            'videos': videos
+        }
+    })
+
+def getVideosByPage(requet):
+    '''
+    分页获取视频
+    :param request:
+    :return:
+    '''
+    if requet.method != 'GET':
+        return JsonResponse({
+            'status': 'fail',
+            'message': '必须使用GET方法请求',
+        })
+    try:
+        page = int(requet.GET.get('page', '1'))
+        one_page_count = int(requet.GET.get('count', PAGINATE_BY))
+        if page < 1:
+            page = 1
+        if one_page_count < 1:
+            one_page_count = PAGINATE_BY
+    except ValueError as e:
+        page = 1
+        one_page_count = PAGINATE_BY
+
+    allVideos = VideoItem.objects.order_by('upload_time').all()
+    paginator = Paginator(allVideos, one_page_count)#一页显示one_page_count条
+    try:
+        videosByPage = paginator.page(page)
+    except(EmptyPage, InvalidPage, PageNotAnInteger):
+        videosByPage = paginator.page(1)
+    videos = VideoItem.to_dict_list(videosByPage)
     if videos == None:
         videos = []
     return JsonResponse({

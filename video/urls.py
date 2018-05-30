@@ -20,11 +20,12 @@ test = [
 
 videos_routes = [
     # 获取全部视频
-    url(r'^video/getAll$', views.getAll, name='getAll$'),
+    url(r'^video/getAll$', views.getAll, name='getAll'),
+    url(r'^video/getVideosByPage$', views.getVideosByPage, name='getVideosByPage'),
     # 根据用户id获取他所有的视频'
     url(r'^video/getVideoByUserId$', views.getVideoByUserId, name='getVideoByUserId'),
     # 根据ids获取一组视频,ids 为字符串,每个id之间以逗号分割
-    url(r'^video/getVideoByIds$', views.getVideoByIds, name='getVideoByIds$'),
+    url(r'^video/getVideoByIds$', views.getVideoByIds, name='getVideoByIds'),
     # 通过视频的id获取该视频的详细信息, video/1/
     url(r'^video/new$', views.new_video, name='new_video'),
     # 获取一个视频的详细信息 (注意: 参数中需要有user_id字段,获取某个用户的某个视频)
