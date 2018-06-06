@@ -162,7 +162,7 @@ def delete_account(request):
         'status': 'success'
     })
 
-@decorator_from_middleware(JwtAuthentication)
+#@decorator_from_middleware(JwtAuthentication)
 def search(request):
     if request.method == 'POST':
         return JsonResponse({
@@ -172,7 +172,7 @@ def search(request):
 
     try:
         username = request.GET.get('username')
-        auth_username = request.GET.get('auth_username')
+        # auth_username = request.GET.get('auth_username')
         if username is None or len(username) == 0:
             return JsonResponse({
                 'status': 'fail',
@@ -185,16 +185,17 @@ def search(request):
                 'status': 'fail',
                 'message': '未知搜索type, type不能爲空'
             })
-        # 如果授权用户不存在,则抛出异常
-        auth_user = UserProfile.objects.filter(username=auth_username).first()
-        token = get_token_data(request)
-        token_username = token['username']
-        # 如果授權的用戶信息與參數中auth_username不一致,則拋出異常
-        if auth_user.username != token_username:
-            return JsonResponse({
-                'status': 'fail',
-                'message': '用戶授權信息錯誤'
-            })
+        # if auth_username != None:
+        #     # 如果授权用户不存在,则抛出异常
+        #     auth_user = UserProfile.objects.filter(username=auth_username).first()
+        #     token = get_token_data(request)
+        #     token_username = token['username']
+        #     # 如果授權的用戶信息與參數中auth_username不一致,則拋出異常
+        #     if auth_user.username != token_username:
+        #         return JsonResponse({
+        #             'status': 'fail',
+        #             'message': '用戶授權信息錯誤'
+        #         })
         search_user = UserProfile.objects.filter(username=username).first()
         search_dict = search_user.to_dict()
         # 獲取用戶發布的所有視頻
