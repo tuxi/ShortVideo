@@ -25,7 +25,7 @@ def send_csrf(request):
     })
 
 def send_auth_token(request):
-    auth_token = get_token_data(request)
+    auth_token = get_token(request)
     return JsonResponse({
         'status': 'success',
         'token': auth_token
