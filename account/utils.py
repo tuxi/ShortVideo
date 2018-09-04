@@ -28,10 +28,16 @@ def create_login_token(data):
 def get_auth_token(request):
     if 'token' in request.COOKIES:
         token = request.COOKIES.get('token')
+        if not  token:
+            return None
         userdata = jwt.decode(token, settings.JWT_SECRET)
         username = userdata['username']
+        if not  username:
+            return None
         # 获取请求的cookie中的token获取用户名
         last_token = cache.get(username)
+        # bytes to string
+        last_token = last_token.decode('utf-8')
     # if 'HTTP_AUTHORIZATION' in request.META:
     #     token = request.META['HTTP_AUTHORIZATION']
         return last_token
