@@ -19,7 +19,7 @@ def create_login_token(data):
         'exp': expiration
     }
 
-def get_token(request):
+def get_auth_token(request):
     if 'token' in request.COOKIES:
         token = request.COOKIES.get('token')
     # if 'HTTP_AUTHORIZATION' in request.META:
@@ -30,6 +30,6 @@ def get_token(request):
 
 def get_token_data(request):
     '''根據token 獲取用戶信息(用戶名 ,郵箱)'''
-    token = get_token(request)
+    token = get_auth_token(request)
     token = jwt.decode(token, settings.JWT_SECRET)
     return token

@@ -17,7 +17,7 @@ from account import utils
 
 class JwtAuthentication(object):
     def process_request(self, request):
-        token = utils.get_token(request)
+        token = utils.get_auth_token(request)
         if token:
             try:
                 payload = jwt.decode(token, settings.JWT_SECRET)
