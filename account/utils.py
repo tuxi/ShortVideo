@@ -8,12 +8,18 @@
 from datetime import datetime, timedelta
 from django.conf import settings
 import jwt
+from django.core.cache import cache
+
+TIME_OUT = 30 * 60  # 30min
 
 
 def create_login_token(data):
     expiration = datetime.utcnow() + timedelta(days=30)
     data['exp'] = expiration
     token = jwt.encode(data, settings.JWT_SECRET, algorithm='HS256')
+    # 存储到缓存中
+    username = data['username']
+    cache.set(username, token, TIME_OUT)
     return {
         'token': token,
         'exp': expiration
@@ -22,9 +28,13 @@ def create_login_token(data):
 def get_auth_token(request):
     if 'token' in request.COOKIES:
         token = request.COOKIES.get('token')
+        userdata = jwt.decode(token, settings.JWT_SECRET)
+        username = userdata['username']
+        # 获取请求的cookie中的token获取用户名
+        last_token = cache.get(username)
     # if 'HTTP_AUTHORIZATION' in request.META:
     #     token = request.META['HTTP_AUTHORIZATION']
-        return token
+        return last_token
     else:
         return None
 
