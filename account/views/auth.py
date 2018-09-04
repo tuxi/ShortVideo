@@ -13,7 +13,7 @@ from django.middleware.csrf import get_token
 from django.core.exceptions import ValidationError
 import json
 
-from account.utils import create_login_token
+from account.utils import create_login_token, get_token_data
 from account.validators import validate_password, validate_email
 
 def send_csrf(request):
@@ -22,6 +22,13 @@ def send_csrf(request):
     return JsonResponse({
         'status': 'success',
         'csrftoken': csrf_token
+    })
+
+def send_auth_token(request):
+    auth_token = get_token_data(request)
+    return JsonResponse({
+        'status': 'success',
+        'token': auth_token
     })
 
 def username_exists(request):

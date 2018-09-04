@@ -13,6 +13,7 @@ auth_routes = [
     url(r'^auth/login/$', views.login, name='login'),
     url(r'^auth/register/$', views.register, name='register'),
     url(r'^auth/usernameexists/$', views.username_exists, name='check unique username'),
+    url(r'^auth/authtoken$', views.send_auth_token, name='send auth token')
 ]
 
 user_data_routes = [
