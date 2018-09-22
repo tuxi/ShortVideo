@@ -37,7 +37,8 @@ def get_auth_token(request):
         # 获取请求的cookie中的token获取用户名
         last_token = cache.get(username)
         # bytes to string
-        last_token = last_token.decode('utf-8')
+        if last_token is not None:
+            last_token = last_token.decode('utf-8')
     # if 'HTTP_AUTHORIZATION' in request.META:
     #     token = request.META['HTTP_AUTHORIZATION']
         return last_token

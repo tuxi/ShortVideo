@@ -16,6 +16,7 @@ from videokit.models import VideoField
 from django.core.validators import MinLengthValidator
 from dss.Serializer import serializer
 import json
+import os
 
 def upload_to(instance, filename):
     return 'media_items{filename}'.format(filename=filename)
@@ -40,6 +41,8 @@ class VideoItem(models.Model):
                        #gif_field='video_gif',
                        mp4_field='video_mp4',
                        #aac_field='video_sound',
+                        cover_duration_filed='cover_duration',
+                       cover_start_second_filed='cover_start_second'
                        )
     video_width = models.IntegerField(null=True, blank=True)
     video_height = models.IntegerField(null=True, blank=True)
@@ -56,6 +59,10 @@ class VideoItem(models.Model):
 
     # 视频前10秒的wep动图，和gif的功能基本相同，使用webp是为了优化客户端流量及性能
     video_animated_webp = models.ImageField(null=True, blank=True)
+    # 封面的起始时间，决定webp从视频的哪里开始显示
+    cover_start_second = models.FloatField(null=True, blank=True)
+    # 封面的长度，决定webp的播放时间
+    cover_duration = models.FloatField(null=True, blank=True)
     title = models.CharField('视频名称', max_length=200, unique=False)
     describe = models.TextField('描述')
     upload_time = models.DateTimeField('上传时间', default=timezone.now)
@@ -101,7 +108,7 @@ class VideoItem(models.Model):
             if BASE_DIR in url:
                 url = url.split(BASE_DIR)[1]
                 return url
-        return ""
+        return None
 
     # @property
     # def video_sound_url(self):
@@ -116,19 +123,19 @@ class VideoItem(models.Model):
     def video_thumbnail_url(self):
         if self.video_thumbnail and hasattr(self.video_thumbnail, 'url'):
             return self.video_thumbnail.url
-        return ""
+        return None
 
     @property
     def video_url(self):
         if self.video and hasattr(self.video, 'url'):
             return self.video.url
-        return ""
+        return None
 
     @property
     def video_animated_webp_url(self):
         if self.video_animated_webp and hasattr(self.video_animated_webp, 'url'):
             return self.video_animated_webp.url
-        return ""
+        return None
 
     def to_dict(self):
         # 序列化model, foreign=True,并且序列化主键对应的mode, exclude_attr 列表里的字段
@@ -170,9 +177,41 @@ class VideoItem(models.Model):
     def to_dict_list(cls, video_list):
         videos = []
         for video in video_list:
-            videos.append(video.to_dict())
+            try:
+                video_dict = video.to_dict()
+                videos.append(video_dict)
+            except ValueError as e:
+                print(e.__str__())
         return videos
 
+    def rollback_resource(self):
+        '''
+        清空视频  比如保存失败
+        :return:
+        '''
+        list = []
+        videoMp4Path = self.video_mp4_url
+        if videoMp4Path is not None:
+            list.append(videoMp4Path)
+        videoPath = self.video_url
+        if videoPath is not None:
+            list.append(videoPath)
+        webpPath = self.video_animated_webp_url
+        if webpPath is not None:
+            list.append(webpPath)
+        thumbnailPath = self.video_thumbnail_url
+        if thumbnailPath is not None:
+            list.append(thumbnailPath)
+
+        for item in list:
+            path = item
+            if BASE_DIR not in item:
+                path = BASE_DIR + item
+            if not os.path.exists(path):
+                return
+            if not os.path.isfile(path):
+                return
+            os.remove(path)
 
 class Category(models.Model):
     """视频分类"""

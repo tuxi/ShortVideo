@@ -112,6 +112,17 @@ def get_video_duration(file):
 
     return 0
 
+def get_start_time_str(seconds=0.0):
+    '''
+    将秒数转化为时间格式
+    :param seconds:
+    :return:
+    '''
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return "%d:%02d:%02d" % (h, m, s)
+
+
 # 生成缩略图
 def get_video_thumbnail(file):
     path = os.path.join(settings.MEDIA_ROOT, file.name)
@@ -120,9 +131,14 @@ def get_video_thumbnail(file):
     if os.path.exists(thumbnail_path):
         return
     if os.path.isfile(path):
+        # 获取从某个时间开始
+        videoItem = file.instance
+        start_time = videoItem.cover_start_second
+        start_time = float(start_time)
+        start_str = get_start_time_str(start_time)
         try:
             process = subprocess.Popen(
-                ['ffmpeg', '-i', path, '-frames', '1', '-y', thumbnail_path],
+                ['ffmpeg', '-ss', start_str, '-i', path, '-frames', '1', '-y', thumbnail_path],
                 stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 
             if process.wait() == 0:
@@ -141,11 +157,19 @@ def get_video_thumbnail_animated_webp(file):
     if os.path.exists(webp_path):
         return
     if os.path.isfile(path):
+        # 获取从某个时间开始
+        videoItem = file.instance
+        start_time = videoItem.cover_start_second
+        duration = float(videoItem.cover_duration)
+        if duration < 3.0:
+            duration = 3.0
+        start_time = float(start_time)
+        start_str = get_start_time_str(start_time)
         try:
             # 执行ffmpeg命令 生成动图webp
             # ffmpeg -ss 00:00:01 -t 5 -i IMG_2021_pkutAEA.MOV -vcodec libwebp -lossless 0 -qscale 75 -preset default -loop 0 -vf scale=320:-1,fps=10 -an -vsync 0 output.webp
             process = subprocess.Popen(
-                ['ffmpeg', '-ss', '00:00:01', '-t', '5', '-i', path, '-vcodec', 'libwebp', '-lossless', '0', '-qscale', '75', '-preset', 'default', '-loop', '0', '-vf', 'scale=320:-1,fps=10', '-an', '-vsync', '0',
+                ['ffmpeg', '-ss', start_str, '-t', str(duration), '-i', path, '-vcodec', 'libwebp', '-lossless', '0', '-qscale', '75', '-preset', 'default', '-loop', '0', '-vf', 'scale=320:-1,fps=10', '-an', '-vsync', '0',
                   webp_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE

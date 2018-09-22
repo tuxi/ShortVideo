@@ -56,6 +56,11 @@ def new_video(request):
     # 获取视频数据
     title = request.POST.get('title', '')
     describe = request.POST.get('describe', '')
+    # 播放封面的时间戳,
+    coverDuration = request.POST.get('coverDuration', 5)
+    # 封面起始的时间戳
+    coverStartTime = request.POST.get('coverStartTime', 0)
+
     # save
     video = request.FILES.get('video', None)
     if len(video.name) > 20:
@@ -76,14 +81,24 @@ def new_video(request):
         video.name = file_name
 
     if video:
-        m = VideoItem(title = title, describe = describe, video = video, user_id = user_id)
+        m = VideoItem(
+            title = title,
+            describe = describe,
+            video = video,
+            user_id = user_id,
+            cover_duration=coverDuration,
+            cover_start_second=coverStartTime
+        )
         try:
             m.save()
         except Exception as e:
+            m.rollback_resource()
             return JsonResponse({
                 'status': 'fail',
                 'message': str(e) if type(e) == ValueError else '保存視頻出錯'
             }, status=500)
+            # 保存失败 清空视频
+
         # 重新查詢一遍視頻,返回給客戶端
         return getVideoDetailByVideoId(m.pk)
     return JsonResponse({

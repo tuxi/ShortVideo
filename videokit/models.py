@@ -25,6 +25,8 @@ class VideoField(models.FileField):
                     animated_webp_field = None,
                     mp4_field = None,
                     aac_field = None,
+                    cover_duration_filed = None,
+                    cover_start_second_filed = None,
                     **kwargs):
         self.width_field = width_field
         self.height_field = height_field
@@ -36,6 +38,8 @@ class VideoField(models.FileField):
         self.animated_webp_field = animated_webp_field
         self.mp4_field = mp4_field
         #self.aac_field = aac_field
+        self.cover_duration_filed = cover_duration_filed
+        self.cover_start_second_filed = cover_start_second_filed
         super(VideoField, self).__init__(verbose_name, name, **kwargs)
 
     def check(self, **kwargs):
@@ -101,6 +105,12 @@ class VideoField(models.FileField):
          #   if self.aac_field:
           #      kwargs['aac_field'] = self.aac_field
 
+        if self.cover_duration_filed:
+            kwargs['cover_duration_filed'] = self.cover_duration_filed
+
+        if self.cover_start_second_filed:
+            kwargs['cover_start_second_filed'] = self.cover_start_second_filed
+
 
         return name, path, args, kwargs
 
@@ -109,6 +119,7 @@ class VideoField(models.FileField):
 
         if not cls._meta.abstract:
             signals.post_init.connect(self.update_dimension_fields, sender = cls)
+            signals.post_init.connect(self.update_cover_fields, sender=cls)
             signals.post_init.connect(self.update_rotation_field, sender = cls)
             signals.post_init.connect(self.update_mimetype_field, sender = cls)
             signals.post_init.connect(self.update_duration_field, sender = cls)
@@ -305,6 +316,36 @@ class VideoField(models.FileField):
             mp4 = None
         if self.mp4_field:
             setattr(instance, self.mp4_field, mp4)
+
+    def update_cover_fields(self, instance, force=False, *args, **kwargs):
+        has_cover_fields = self.cover_start_second_filed or self.cover_duration_filed
+        if not has_cover_fields:
+            return
+
+        file = getattr(instance, self.attname)
+
+        if not file and not force:
+            return
+
+        cover_fields_filled = not (
+            (self.cover_duration_filed and not getattr(instance, self.cover_duration_filed))
+            or (self.cover_start_second_filed and not getattr(instance, self.cover_start_second_filed))
+        )
+
+        if cover_fields_filled and not  force:
+            return
+
+        if file:
+            cover_duration = file.cover_duration
+            cover_start_second = file.cover_start_second
+        else:
+            cover_duration = None
+            cover_start_second = None
+
+        if self.cover_start_second_filed:
+            setattr(instance, self.cover_start_second_filed, cover_start_second)
+        if self.cover_duration_filed:
+            setattr(instance, self.cover_duration_filed, cover_duration)
 
     # def update_aac_field(self, instance, force=False, *args, **kwargs):
     #     has_aac_field = self.aac_field
