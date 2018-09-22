@@ -242,7 +242,20 @@ def get_video_thumbnail_animated_webp(file):
 
 # 轉換爲mp4
 def get_video_mp4(file):
+    '''
+    针对非MP4视频转换为mp4
+    :param file:
+    :return:
+    '''
     path = os.path.join(settings.MEDIA_ROOT, file.name)
+    if not os.path.exists(path):
+        return ''
+    # 如果该资源已经是MP4则不再转换
+    # 获取后缀（文件类型）
+    file_type = os.path.splitext(path)[-1][1:]
+    if file_type and file_type.lower() == 'mp4':
+        return path
+
     mp4_name = '%s%s' % (file.name, '.mp4')
     mp4_path = os.path.join(settings.MEDIA_ROOT, mp4_name)
     if os.path.exists(mp4_path):

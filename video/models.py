@@ -57,7 +57,7 @@ class VideoItem(models.Model):
                        #gif_field='video_gif',
                        mp4_field='video_mp4',
                        #aac_field='video_sound',
-                        cover_duration_filed='cover_duration',
+                       cover_duration_filed='cover_duration',
                        cover_start_second_filed='cover_start_second'
                        )
     video_width = models.IntegerField(null=True, blank=True)
