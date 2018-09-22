@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.db.models import Avg, Count, Func
 
 from account.utils import get_token_data
-from ..models import VideoItem
+from ..models import VideoItem, LocationItem
 from account.middlewares.jwt_authentication import JwtAuthentication
 from django.utils.decorators import decorator_from_middleware
 from account.models import UserProfile
@@ -81,14 +81,43 @@ def new_video(request):
         video.name = file_name
 
     if video:
-        m = VideoItem(
-            title = title,
-            describe = describe,
-            video = video,
-            user_id = user_id,
-            cover_duration=coverDuration,
-            cover_start_second=coverStartTime
-        )
+        # 经度
+        longitude = request.POST.get('longitude')
+        # 纬度
+        latitude = request.POST.get('latitude')
+        name = request.POST.get('poi_name')
+        address = request.POST.get('poi_address')
+
+        # 根据地址经纬度查询poi，如果没有这个poi就保存数据库
+        location = None
+        if longitude and latitude and name and address:
+            location = LocationItem.objects.filter(longitude=longitude, latitude=latitude, name=name, address=address).first()
+            if not location:
+                location = LocationItem(longitude=longitude, latitude=latitude, name=name, address=address)
+                location.save()
+                # 重新查询下，为了获取主键
+                location = LocationItem.objects.filter(longitude=longitude, latitude=latitude, name=name, address=address).first()
+        if not location:
+            # 没有有地址
+            m = VideoItem(
+                title=title,
+                describe=describe,
+                video=video,
+                user_id=user_id,
+                cover_duration=coverDuration,
+                cover_start_second=coverStartTime
+            )
+        else:
+            # 有地址 关联地址
+            m = VideoItem(
+                title=title,
+                describe=describe,
+                video=video,
+                user_id=user_id,
+                location_id=location.pk,
+                cover_duration=coverDuration,
+                cover_start_second=coverStartTime
+            )
         try:
             m.save()
         except Exception as e:

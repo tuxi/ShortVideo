@@ -21,6 +21,22 @@ import os
 def upload_to(instance, filename):
     return 'media_items{filename}'.format(filename=filename)
 
+class LocationItem(models.Model):
+    #经度
+    longitude = models.FloatField(null=False, blank=False)
+    #纬度
+    latitude = models.FloatField(null=False, blank=False)
+    name = models.CharField('poi本地化名称', max_length=200, unique=False)
+    address = models.CharField('poi地址', max_length=300, unique=False)
+
+    def __str__(self):
+        return self.name + self.address
+
+    def to_dict(self):
+        # 序列化model, foreign=True,并且序列化主键对应的model
+        dict = serializer(data=self, foreign=True)
+        return dict
+
 class VideoItem(models.Model):
     """媒体文件"""
     STATUS_CHOICES = (
@@ -72,6 +88,7 @@ class VideoItem(models.Model):
     category = models.ForeignKey('Category', verbose_name='分类', on_delete=models.CASCADE, blank=True, null=True)
     comment_status = models.CharField('评论状态', max_length=1, choices=COMMENT_STATUS, default='o')
     status = models.CharField('视频状态', max_length=1, choices=STATUS_CHOICES, default='p')
+    location = models.ForeignKey(LocationItem, verbose_name='所在位置', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.title + self.describe
@@ -143,12 +160,17 @@ class VideoItem(models.Model):
         user = UserProfile.objects.filter(pk=self.user_id).first()
         user_dict = user.to_dict()
         dict['author'] = user_dict
+        location = LocationItem.objects.filter(pk=self.location_id).first()
+        if location:
+            location_dict = location.to_dict()
+            dict['location'] = location_dict
         dict['video'] = self.video_url
         dict['video_thumbnail'] = self.video_thumbnail_url
         dict['video_mp4'] = self.video_mp4_url
         #dict['video_sound'] = self.video_sound_url
         dict['video_animated_webp'] = self.video_animated_webp_url
         #dict['video_gif'] = self.video_gif_url
+
 
         ############ 獲取該視頻的評級
         r = Rating.objects.filter(video=self).values('rating').aggregate(
